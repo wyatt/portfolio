@@ -1,0 +1,88 @@
+---
+permalink: /404.html
+---
+<html>
+
+<head>
+    <!-- Google Tag Manager -->
+    <script>
+        (function(w, d, s, l, i) {
+            w[l] = w[l] || [];
+            w[l].push({
+                'gtm.start': new Date().getTime(),
+                event: 'gtm.js'
+            });
+            var f = d.getElementsByTagName(s)[0],
+                j = d.createElement(s),
+                dl = l != 'dataLayer' ? '&l=' + l : '';
+            j.async = true;
+            j.src =
+                'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+            f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-WCC72FB');
+
+    </script>
+    <!-- End Google Tag Manager -->
+    <title>404 - Page Not Found</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro');
+
+        html {
+            background: url("/errors/images/starwars.jpg") no-repeat center center fixed;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+            font-family: 'Source Sans Pro', sans-serif;
+            color: white;
+        }
+
+        #error {
+            font-size: 30em;
+            margin: 0;
+        }
+
+        #errorinfo {
+            font-size: 10em;
+            margin: 0;
+        }
+
+        #sline {
+            font-size: 4em;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+        }
+
+        a:hover {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        #credit {
+            bottom: 0%;
+            position: fixed;
+            right: 0%
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WCC72FB" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    <div style="display:flex;justify-content:center;align-items:center;height:100%;width:100%;position:fixed;text-align:center">
+        <div>
+            <h1 id="error">404</h1>
+            <h1 id="errorinfo">Page Not Found :(</h1>
+            <h1 id="sline">This isn't the page you're looking for. <a href="/">Back?</a></h1>
+        </div>
+    </div>
+    <div id="credit">
+        <p style="margin: 5px">Photo: TM & &#169; Lucasfilm Ltd. All Rights Reserved</p>
+    </div>
+</body>
+
+</html>
