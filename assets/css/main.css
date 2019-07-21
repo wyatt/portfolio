@@ -2655,7 +2655,7 @@ input[type="reset"].primary:active,
 input[type="button"].primary:active,
 button.primary:active,
 .button.primary:active {
-    background-color: #ee5f81;
+    background-color: #82bd61;
 }
 
 input[type="submit"].disabled,
