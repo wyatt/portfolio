@@ -1,148 +1,131 @@
-<!DOCTYPE HTML>
-<!--
-	Phantom by HTML5 UP
-	html5up.net | @ajlkn
-	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
--->
 <html>
-
-<head>
+  <head>
     <title>Wyatt Sell</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.4.1/css/bootstrap-grid.min.css"
+      integrity="sha256-UQsknf/mQPLQ3ybNMD/V2mKe4JGc7KuYUxOhjQW0P18="
+      crossorigin="anonymous"
+    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css" />
+    <script src="https://kit.fontawesome.com/d24eeb74ec.js" crossorigin="anonymous"></script>
+    <script
+      src="https://code.jquery.com/jquery-3.4.1.min.js"
+      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
-    <link rel="stylesheet" href="assets/css/main.css" />
-    <noscript>
-        <link rel="stylesheet" href="assets/css/noscript.css" />
-    </noscript>
-</head>
-
-<body class="is-preload">
-    <!-- Wrapper -->
-    <div id="wrapper">
-        <!-- Header -->
-        <header id="header">
-            <div class="inner">
-
-                <!-- Logo -->
-                <a href="/" class="logo">
-                    <span class="title">Wyatt Sell</span>
-                </a>
-
-                <!-- Nav -->
-                <!--<nav>-->
-                <!--	<ul>-->
-                <!--		<li><a href="#menu">Menu</a></li>-->
-                <!--	</ul>-->
-                <!--</nav>-->
-
+  </head>
+  <body>
+    <div class="container-fluid">
+      <div class="row no-gutters">
+        <div class="col">
+          <div id="header">
+            <div id="name" class="animated fadeInLeft">
+              <h1>Wyatt Sell</h1>
+              <p>Graphic and Web Designer</p>
             </div>
-        </header>
-
-        <!-- Menu -->
-        <!--	<nav id="menu">-->
-        <!--		<h2>Menu</h2>-->
-        <!--		<ul>-->
-        <!--			<li><a href="index.html">Home</a></li>-->
-        <!--			<li><a href="generic.html">Ipsum veroeros</a></li>-->
-        <!--			<li><a href="generic.html">Tempus etiam</a></li>-->
-        <!--			<li><a href="generic.html">Consequat dolor</a></li>-->
-        <!--			<li><a href="elements.html">Elements</a></li>-->
-        <!--		</ul>-->
-        <!--	</nav>-->
-
-        <!-- Main -->
-        <div id="main">
-            <div class="inner">
-                <header>
-                    <h1>This is design. Done properly.</h1>
-                    <p>I am a graphic designer who can bring fresh and new ideas to the table. I can design logos, business cards, posters and more.
-                        I also am relatively experienced in web design and photography however it is not my most proficient frontier.
-                        I endeavor to seek perfection in my work and give clients the results they deserve.</p>
-                </header>
-                <section class="tiles">
-                    <article class="style1">
-                        <span class="image">
-                            <img src="images/esports/posterCensored.jpg" alt="" />
-                        </span>
-                        <a href="esports">
-                            <h2>Esports</h2>
-                            <div class="content">
-                                <p>A poster design for a Overwatch tournament to gain more viewers and get people invloved in the tournament.</p>
-                            </div>
-                        </a>
-                    </article>
-                    <article class="style2">
-                        <span class="image">
-                            <img src="images/profilePicture/profilePicture.jpg" alt="" />
-                        </span>
-                        <a href="profilePicture">
-                            <h2>Profile Picture</h2>
-                            <div class="content">
-                                <p>A material and minimal profile picture for online and offline use. Remain recognizable but anonymous.</p>
-                            </div>
-                        </a>
-                    </article>
-                    <article class="style3">
-                        <span class="image">
-                            <img src="images/30DayLogo/alisonCosmetics/alisonCosmeticsDark.png" alt="" />
-                        </span>
-                        <a href="30DayLogo">
-                            <h2>30 Day Logo Challenge</h2>
-                            <div class="content">
-                                <p>My interpretation of the 30 day logo challenge</p>
-                            </div>
-                        </a>
-                    </article>
-                </section>
+            <div id="icons" class="animated fadeInRight">
+              <a class="icon dribble" href="https://dribbble.com/wyattsell"><i class="fab fa-dribbble"></i></a>
+              <a class="icon discord" href="https://dsc.bio/wyatt"><i class="fab fa-discord"></i></a>
+              <a class="icon email" href="mailto:hello@wyattsell.com"><i class="far fa-envelope"></i></a>
             </div>
+          </div>
         </div>
-
-        <!-- Footer -->
-        <footer id="footer">
-            <div class="inner">
-                <section>
-                    <h2>Get in touch</h2>
-                    <form action="https://formspree.io/hello@wyattsell.com" method="POST">
-                        <div class="fields">
-                            <div class="field half">
-                                <input type="text" name="name" id="name" placeholder="Name" />
-                            </div>
-                            <div class="field half">
-                                <input type="email" name="email" id="email" placeholder="Email" />
-                            </div>
-                            <div class="field">
-                                <textarea name="message" id="message" placeholder="Message"></textarea>
-                            </div>
-                        </div>
-                        <ul class="actions">
-                            <li><input type="submit" value="Send" class="primary" /></li>
-                        </ul>
-                    </form>
-                </section>
-                <section>
-                    <h2>Follow</h2>
-                    <ul class="icons">
-                        <li><a href="https://dribbble.com/profwyattb" class="icon style2 fa-dribbble"><span class="label">Dribbble</span></a></li>
-                        <br />
-                        <li><span>You can also contact me via discord
-                                <b>profwyattb#0588</b></span></li>
-                    </ul>
-                </section>
-                <ul class="copyright">
-                    <li>&copy; Wyatt Sell | All rights reserved</li>
-                    <li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
-                </ul>
-            </div>
-        </footer>
-
+      </div>
+      <div id="hover">
+        <div class="row no-gutters">
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+          <div class="col-md-5ths nothing col-xs-12">
+            <div class="image animated zoomIn delay-2s"></div>
+          </div>
+        </div>
+      </div>
     </div>
-
-    <!-- Scripts -->
-    <script src="assets/js/jquery.min.js"></script>
-    <script src="assets/js/browser.min.js"></script>
-    <script src="assets/js/breakpoints.min.js"></script>
-    <script src="assets/js/util.js"></script>
-    <script src="assets/js/main.js"></script>
-</body>
-
+    <script>
+      const accessToken = "e890baae9eff1cd7e27d4818459410e1daca0eb6f814a7041edb395a661a9784";
+      $.ajax({
+        url: "https://api.dribbble.com/v2/user/shots?access_token=" + accessToken,
+        dataType: "json",
+        type: "GET",
+        success: function (data) {
+          let colour;
+          const colourget = (val) => {
+            val.tags.forEach((element) => {
+              if (element.includes("col")) {
+                colour = "#" + element.slice(3, 9);
+              }
+            });
+          };
+          if (data.length > 0) {
+            // $('.image').append('<img src="https://source.unsplash.com/random/1600x1200"/></img>');
+            // $.each(data.reverse(), function(i, val) {
+            //   $('.image').append(
+            //     '<a class="shotlink" href="' + val.html_url + '"><img src="' + val.images.hidpi + '"/></img></a>',
+            //   );
+            // });
+            $.each(data, function (i, val) {
+              colourget(val);
+              console.log(val);
+              console.log(colour);
+              $(".image")[i].innerHTML +=
+                "<a class='shotlink' style='backgroud:" +
+                colour +
+                "' href='" +
+                val.html_url +
+                "'><img src='" +
+                val.images.hidpi +
+                "'/></img></a>";
+            });
+          } else {
+            $(".image").append('<img src="https://source.unsplash.com/random/1000x1000"/></img>');
+          }
+        },
+      });
+    </script>
+  </body>
 </html>
