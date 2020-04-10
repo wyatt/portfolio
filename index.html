@@ -8,24 +8,15 @@
       integrity="sha256-UQsknf/mQPLQ3ybNMD/V2mKe4JGc7KuYUxOhjQW0P18="
       crossorigin="anonymous"
     />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css"
-    />
-    <script
-      src="https://kit.fontawesome.com/d24eeb74ec.js"
-      crossorigin="anonymous"
-    ></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.7.2/animate.min.css" />
+    <script src="https://kit.fontawesome.com/d24eeb74ec.js" crossorigin="anonymous"></script>
     <script
       src="https://code.jquery.com/jquery-3.4.1.min.js"
       integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
       crossorigin="anonymous"
     ></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, minimum-scale=1"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
     <meta name="”robots”" content="”nofollow”" />
     <meta charset="utf-8" />
   </head>
@@ -39,15 +30,9 @@
               <p>Graphic and Web Designer</p>
             </div>
             <div id="icons" class="animated fadeInRight">
-              <a class="icon dribble" href="https://dribbble.com/wyattsell"
-                ><i class="fab fa-dribbble"></i
-              ></a>
-              <a class="icon discord" href="https://dsc.bio/wyatt"
-                ><i class="fab fa-discord"></i
-              ></a>
-              <a class="icon email" href="mailto:hello@wyattsell.com"
-                ><i class="far fa-envelope"></i
-              ></a>
+              <a class="icon dribble" href="https://dribbble.com/wyattsell"><i class="fab fa-dribbble"></i></a>
+              <a class="icon discord" href="https://dsc.bio/wyatt"><i class="fab fa-discord"></i></a>
+              <a class="icon email" href="mailto:hello@wyattsell.com"><i class="far fa-envelope"></i></a>
             </div>
           </div>
         </div>
@@ -103,11 +88,9 @@
       </div>
     </div>
     <script>
-      const accessToken =
-        "e890baae9eff1cd7e27d4818459410e1daca0eb6f814a7041edb395a661a9784";
+      const accessToken = "e890baae9eff1cd7e27d4818459410e1daca0eb6f814a7041edb395a661a9784";
       $.ajax({
-        url:
-          "https://api.dribbble.com/v2/user/shots?access_token=" + accessToken,
+        url: "https://api.dribbble.com/v2/user/shots?access_token=" + accessToken,
         dataType: "json",
         type: "GET",
         success: function (data) {
@@ -120,16 +103,8 @@
             });
           };
           if (data.length > 0) {
-            // $('.image').append('<img src="https://source.unsplash.com/random/1600x1200"/></img>');
-            // $.each(data.reverse(), function(i, val) {
-            //   $('.image').append(
-            //     '<a class="shotlink" href="' + val.html_url + '"><img src="' + val.images.hidpi + '"/></img></a>',
-            //   );
-            // });
             $.each(data, function (i, val) {
               colourget(val);
-              console.log(val);
-              console.log(colour);
               $(".image")[i].innerHTML +=
                 "<a class='shotlink' style='backgroud:" +
                 colour +
@@ -140,9 +115,7 @@
                 "'/></img></a>";
             });
           } else {
-            $(".image").append(
-              '<img src="https://source.unsplash.com/random/1000x1000"/></img>'
-            );
+            $(".image").append('<img src="https://source.unsplash.com/random/1000x1000"/></img>');
           }
         },
       });
