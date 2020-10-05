@@ -4,7 +4,7 @@ import { useAtom } from "jotai";
 import { visiblePage as visiblePageAtom } from "../../../core/app";
 
 import { ProfilePicture } from "./ProfilePicture";
-import { CurrentSong } from "../../CurrentSong";
+import { CurrentSong } from "./CurrentSong";
 import { Header } from "./Header";
 import { MainBody } from "./MainBody";
 

@@ -6,7 +6,7 @@ export const MainBody = () => {
   return (
     <MainContentContainer>
       <h1>Wyatt Sell</h1>
-      <p>
+      <BodyText>
         Hey, I'm Wyatt!{" "}
         <span role="img" aria-label="wave">
           👋
@@ -19,7 +19,7 @@ export const MainBody = () => {
         <br />
         If you need a website, let's talk. All websites are designed using the
         latest standards to ensure speed, usability and simplicity.
-      </p>
+      </BodyText>
       <Buttons>
         <SecondaryButtons>
           <Button href="https://dsc.bio/wyatt">
@@ -54,6 +54,10 @@ const MainContentContainer = styled.div`
     width: 100%;
     text-align: center;
   }
+`;
+
+const BodyText = styled.p`
+  color: rgba(255, 255, 255, 0.75);
 `;
 
 const Buttons = styled.div`
@@ -109,7 +113,7 @@ const Button = styled.a`
   display: flex;
   width: 40px;
   margin: 0 5px;
-  border: 1px solid white;
+  /* border: 1px solid white; */
   border-radius: 10px;
   justify-content: center;
   align-items: center;
