@@ -76,9 +76,6 @@ const SongText = styled.p`
   overflow: hidden;
   align-items: center;
   width: calc(100% - 22px);
-  @media (max-width: 1000px), (max-height: 700px) {
-    width: fit-content;
-  }
 `;
 
 const SongSpan = styled.span`
