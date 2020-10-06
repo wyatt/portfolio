@@ -32,9 +32,7 @@ export const MainBody = () => {
             <RiGithubLine />
           </Button>
         </SecondaryButtons>
-        <ContactButton href="mailto:wyatt@wyattsell.com">
-          Get in touch
-        </ContactButton>
+        <ContactButton href="mailto:wyatt@wyattsell.com"></ContactButton>
       </Buttons>
     </MainContentContainer>
   );
@@ -93,6 +91,9 @@ const ContactButton = styled.a`
   color: rgb(38, 50, 56);
   box-sizing: border-box;
   font-size: 100%;
+  &::after {
+    content: "Get in touch";
+  }
   &:focus {
     outline: none;
   }
@@ -100,6 +101,9 @@ const ContactButton = styled.a`
     background: rgba(0, 0, 0, 0);
     border: 1px solid white;
     color: white;
+  }
+  &:hover:after {
+    content: "wyatt@wyattsell.com";
   }
   @media (max-width: 1000px) {
     margin-top: 24px;
