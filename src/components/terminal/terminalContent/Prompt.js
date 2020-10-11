@@ -23,7 +23,7 @@ const PromptText = styled.span`
 const PromptContainer = styled.p`
   margin-top: 10px;
   font-family: "Courier Prime", monospace;
-  font-size: 120%;
+  font-size: 100%;
   line-height: 1;
 `;
 

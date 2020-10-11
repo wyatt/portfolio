@@ -76,6 +76,9 @@ const SongText = styled.p`
   overflow: hidden;
   align-items: center;
   width: calc(100% - 22px);
+  @media (max-width: 1000px) {
+    width: calc(auto - 22px);
+  } ;
 `;
 
 const SongSpan = styled.span`
@@ -118,7 +121,7 @@ const SongContainer = styled.div`
   width: 30vh;
   overflow: hidden;
   align-items: center;
-  @media (max-width: 1000px), (max-height: 500px) {
+  @media (max-width: 1000px) {
     justify-content: center;
     text-align: center;
     width: 100%;
