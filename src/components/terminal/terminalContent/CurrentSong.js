@@ -118,7 +118,7 @@ const SongContainer = styled.div`
   width: 30vh;
   overflow: hidden;
   align-items: center;
-  @media (max-width: 1000px), (max-height: 700px) {
+  @media (max-width: 1000px), (max-height: 500px) {
     justify-content: center;
     text-align: center;
     width: 100%;
