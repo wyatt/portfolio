@@ -137,7 +137,7 @@ const splide = new Splide("#splide", {
   gap: 20,
   easing: "ease",
   arrows: false,
-  interval: 2000,
+  interval: 3000,
   lazyLoad: true,
   drag: false,
 }).mount();

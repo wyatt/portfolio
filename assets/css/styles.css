@@ -137,8 +137,8 @@ p {
 }
 
 .slide-item {
-  height: 280px;
-  width: 25vw;
+  height: 30vh;
+  width: 50vh;
   border-radius: 15px;
   display: flex;
   align-items: center;
@@ -158,6 +158,9 @@ p {
 @media only screen and (max-width: 768px) {
   .slide-item {
     width: calc(100vw - 80px);
+  }
+  .slide-title {
+    font-size: 2.5em;
   }
 }
 
