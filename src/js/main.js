@@ -1,3 +1,8 @@
+// Imports
+import Splide from "@splidejs/splide";
+
+import "../css/animate.min.css";
+import "../css/styles.css";
 // Variable definitions
 const background = document.getElementById("renderSurface");
 const ctx = background.getContext("2d");
@@ -126,3 +131,17 @@ document.querySelectorAll("a").forEach((item) =>
 resizeCanvas();
 changeAnimations();
 setRandomColor(colorPicker(Math.floor(Math.random() * 5))[0]);
+//Carousel
+new Splide("#splide", {
+  type: "loop",
+  autoWidth: true,
+  focus: "center",
+  autoplay: true,
+  pagination: true,
+  gap: 20,
+  easing: "ease",
+  arrows: false,
+  interval: 2000,
+  lazyLoad: true,
+  drag: true,
+}).mount();
