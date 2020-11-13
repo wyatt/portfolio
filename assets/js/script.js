@@ -139,5 +139,5 @@ const splide = new Splide("#splide", {
   arrows: false,
   interval: 2000,
   lazyLoad: true,
-  drag: true,
+  drag: false,
 }).mount();
