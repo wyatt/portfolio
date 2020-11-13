@@ -1,0 +1,199 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap");
+
+html {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  user-select: none;
+}
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  background-color: rgb(15, 15, 15);
+  overflow: hidden;
+  flex-direction: column;
+}
+canvas {
+  position: absolute;
+  height: 100vh;
+  width: 100vw;
+}
+#container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  z-index: 10;
+}
+#text {
+  margin-bottom: 1em;
+  text-align: center;
+}
+#buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+h1 {
+  font-size: 5em;
+  margin: 0;
+  color: white;
+}
+@supports (-webkit-text-stroke-color: white) and (-webkit-text-stroke-width: 1px) {
+  h1 {
+    color: transparent;
+    -webkit-text-stroke-width: 1px;
+    -webkit-text-stroke-color: white;
+  }
+}
+p {
+  color: #ffffffe0;
+  margin-top: 0;
+  margin-bottom: 1.1em;
+  font-size: 1.2em;
+}
+.mb {
+  padding: 0.7em 1.95em;
+  border: none;
+  border-radius: 0.5em;
+  margin: 0 0.5em 0.75em 0.5em;
+  pointer-events: all;
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 0 0 1px white;
+  display: inline-block;
+  text-decoration: none;
+}
+.mb:focus {
+  outline: none;
+}
+.mb:hover {
+  transform: scale(0.9);
+}
+#connections {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  margin: 0.7em;
+  pointer-events: all;
+}
+#placeholder {
+  width: 138px;
+  height: 46px;
+}
+.connection {
+  display: flex;
+  margin: 3px;
+  transition: all 0.2s ease-in-out;
+}
+.connection:hover {
+  transform: scale(0.8);
+}
+@media only screen and (max-width: 768px) {
+  body {
+    flex-direction: column;
+  }
+  #connections {
+    align-self: inherit;
+  }
+  h1 {
+    font-size: 4em;
+  }
+  .mb {
+    padding: 0.5em 0.75em;
+  }
+}
+@media only screen and (max-width: 400px) {
+  h1 {
+    font-size: 3em;
+  }
+}
+
+/* Carossel Styling */
+#carossel {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: all;
+}
+.background:hover {
+  opacity: 0;
+  transition: all ease-in-out 0.5s;
+}
+.slide-title {
+  font-size: 3em;
+}
+.splide__track {
+  overflow: visible;
+}
+
+.slide-item {
+  height: 280px;
+  width: 25vw;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 20px;
+  transition: all 0.5s ease-in-out;
+  overflow: hidden;
+  position: relative;
+}
+@media only screen and (max-width: 1000px) {
+  .slide-item {
+    width: 40vw;
+  }
+}
+@media only screen and (max-width: 768px) {
+  .slide-item {
+    width: calc(100vw - 80px);
+  }
+}
+
+.splide__slide {
+  box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
+  overflow: visible;
+  border-radius: 15px;
+}
+.slide-item::before {
+  content: " ";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  transition: all 0.5s ease-in-out;
+  z-index: -10;
+  filter: brightness(70%);
+}
+.slide-item:hover::before {
+  transform: scale(1.25);
+  filter: brightness(30%);
+}
+#darkoakcafe::before {
+  background: url("../images/darkoakcafe.jpg") center / cover no-repeat;
+}
+#senecalearning::before {
+  background: url("../images/senecalearning.jpg") center / cover no-repeat;
+}
+#conehead::before {
+  background: url("../images/conehead.jpg") center / cover no-repeat;
+}
+a {
+  text-decoration: none;
+}
+a:focus {
+  outline: none;
+}
+.splide__pagination {
+  bottom: -2em;
+}
