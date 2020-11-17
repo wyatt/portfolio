@@ -23,6 +23,7 @@ h1 {
   font-size: 5em;
   margin: 0;
   color: white;
+  transition: all 0.2s ease-in-out;
 }
 
 @supports (-webkit-text-stroke-color: white) and (-webkit-text-stroke-width: 1px) {
@@ -53,6 +54,7 @@ p {
   margin-top: 0;
   margin-bottom: 1.1em;
   font-size: 1.2em;
+  transition: all 0.2s ease-in-out;
 }
 .mb {
   padding: 0.7em 1.95em;
@@ -145,22 +147,28 @@ a:focus {
   height: 100%;
   transition: all 0.5s ease-in-out;
   z-index: -10;
-  filter: brightness(70%);
+  filter: brightness(30%);
 }
 .item:hover::before {
   transform: scale(1.25);
-  filter: brightness(30%);
+  filter: brightness(90%);
+}
+.item:hover p {
+  opacity: 0;
+}
+.item:hover h1 {
+  opacity: 0;
 }
 
 #darkoakcafe::before {
-  background: url("../images/darkoakcafe.jpg") center / cover no-repeat;
+  background: url("../images/darkoakcafe.png") center / cover no-repeat;
 }
 #senecalearning::before {
-  background: url("../images/senecalearning.jpg") center / cover no-repeat;
+  background: url("../images/senecalearning.png") center / cover no-repeat;
 }
 #conehead::before {
-  background: url("../images/conehead.jpg") center / cover no-repeat;
+  background: url("../images/conehead.png") center / cover no-repeat;
 }
 #billionaireballer::before {
-  background: url("../images/billionaireballer.jpg") center / cover no-repeat;
+  background: url("../images/billionaireballer.png") center / cover no-repeat;
 }
