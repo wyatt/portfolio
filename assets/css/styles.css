@@ -1,13 +1,10 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap");
 
 html {
-  width: 100%;
-  height: 100%;
-  position: fixed;
   user-select: none;
 }
+
 body {
-  width: 100%;
   height: 100%;
   margin: 0 auto;
   display: flex;
@@ -16,36 +13,18 @@ body {
   font-family: "Poppins", sans-serif;
   font-weight: 600;
   background-color: rgb(15, 15, 15);
-  overflow: hidden;
   flex-direction: column;
 }
-canvas {
-  position: absolute;
-  height: 100vh;
-  width: 100vw;
-}
-#container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  z-index: 10;
-}
-#text {
-  margin-bottom: 1em;
-  text-align: center;
-}
-#buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+#aboutme {
+  margin: 5% 0 3% 0;
 }
 h1 {
   font-size: 5em;
   margin: 0;
   color: white;
 }
+
 @supports (-webkit-text-stroke-color: white) and (-webkit-text-stroke-width: 1px) {
   h1 {
     color: transparent;
@@ -53,8 +32,24 @@ h1 {
     -webkit-text-stroke-color: white;
   }
 }
+
+#text {
+  margin-bottom: 1em;
+  text-align: center;
+}
+
+#buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#container {
+  margin: 40px;
+}
+
 p {
-  color: #ffffffe0;
+  color: rgba(255, 255, 255, 0.9);
   margin-top: 0;
   margin-bottom: 1.1em;
   font-size: 1.2em;
@@ -78,16 +73,13 @@ p {
 .mb:hover {
   transform: scale(0.9);
 }
+
 #connections {
   display: flex;
   justify-content: center;
   flex-direction: row;
   margin: 0.7em;
   pointer-events: all;
-}
-#placeholder {
-  width: 138px;
-  height: 46px;
 }
 .connection {
   display: flex;
@@ -97,6 +89,7 @@ p {
 .connection:hover {
   transform: scale(0.8);
 }
+
 @media only screen and (max-width: 768px) {
   body {
     flex-direction: column;
@@ -117,59 +110,35 @@ p {
   }
 }
 
-/* Carossel Styling */
-#carossel {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: all;
-}
-.background:hover {
-  opacity: 0;
-  transition: all ease-in-out 0.5s;
-}
-.slide-title {
+.item-title {
   font-size: 3em;
 }
-.splide__track {
-  overflow: visible;
-}
-
-.slide-item {
-  height: 30vh;
-  width: 50vh;
-  border-radius: 15px;
+.item {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-direction: column;
+  height: 35vh;
+  min-height: 250px;
+  border-radius: 15px;
   text-align: center;
   padding: 20px;
-  transition: all 0.5s ease-in-out;
   overflow: hidden;
   position: relative;
-}
-@media only screen and (max-width: 1000px) {
-  .slide-item {
-    width: 40vw;
-  }
-}
-@media only screen and (max-width: 768px) {
-  .slide-item {
-    width: calc(100vw - 80px);
-  }
-  .slide-title {
-    font-size: 2.2em;
-  }
+  transition: all 0.5s ease-in-out;
+  box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
 }
 
-.splide__slide {
-  box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
-  overflow: visible;
-  border-radius: 15px;
+.col {
+  margin: 15px 0;
 }
-.slide-item::before {
+a {
+  text-decoration: none;
+}
+a:focus {
+  outline: none;
+}
+.item::before {
   content: " ";
   position: absolute;
   width: 100%;
@@ -178,10 +147,11 @@ p {
   z-index: -10;
   filter: brightness(70%);
 }
-.slide-item:hover::before {
+.item:hover::before {
   transform: scale(1.25);
   filter: brightness(30%);
 }
+
 #darkoakcafe::before {
   background: url("../images/darkoakcafe.jpg") center / cover no-repeat;
 }
@@ -191,12 +161,6 @@ p {
 #conehead::before {
   background: url("../images/conehead.jpg") center / cover no-repeat;
 }
-a {
-  text-decoration: none;
-}
-a:focus {
-  outline: none;
-}
-.splide__pagination {
-  bottom: -2em;
+#billionaireballer::before {
+  background: url("../images/billionaireballer.jpg") center / cover no-repeat;
 }
