@@ -147,10 +147,9 @@ a:focus {
   height: 100%;
   transition: all 0.5s ease-in-out;
   z-index: -10;
-  filter: brightness(30%);
+  filter: brightness(20%);
 }
 .item:hover::before {
-  transform: scale(1.25);
   filter: brightness(90%);
 }
 .item:hover p {
