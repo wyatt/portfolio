@@ -32,3 +32,6 @@ const changeAnimations = () => {
 // setRandomColor(colorPicker(Math.floor(Math.random() * 5)));
 changeAnimations();
 console.log("ok");
+window.onload =  () => {
+  window.scrollTo(0, 0);
+};
