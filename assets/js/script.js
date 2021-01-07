@@ -29,6 +29,6 @@ const changeAnimations = () => {
 };
 
 //Initial functions
-setRandomColor(colorPicker(Math.floor(Math.random() * 5)));
+// setRandomColor(colorPicker(Math.floor(Math.random() * 5)));
 changeAnimations();
 console.log("ok");
