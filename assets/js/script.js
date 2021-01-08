@@ -29,9 +29,11 @@ const changeAnimations = () => {
 };
 
 //Initial functions
-// setRandomColor(colorPicker(Math.floor(Math.random() * 5)));
 changeAnimations();
 console.log("ok");
 window.onload =  () => {
   window.scrollTo(0, 0);
 };
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
