@@ -62,7 +62,7 @@
       <workItem from="1609699828896" duration="2550000" />
       <workItem from="1609756383331" duration="39000" />
       <workItem from="1610031710831" duration="2115000" />
-      <workItem from="1610120733142" duration="698000" />
+      <workItem from="1610120733142" duration="878000" />
     </task>
     <task id="LOCAL-00001" summary="added more projects">
       <created>1609084715146</created>
@@ -120,7 +120,21 @@
       <option name="project" value="LOCAL" />
       <updated>1610120779535</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Hover changes">
+      <created>1610123337612</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1610123337612</updated>
+    </task>
+    <task id="LOCAL-00010" summary="Hover changes">
+      <created>1610123391745</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1610123391745</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -147,7 +161,8 @@
     <MESSAGE value="Fixed bug" />
     <MESSAGE value="Fixed bug pt.2" />
     <MESSAGE value="Minor change" />
-    <option name="LAST_COMMIT_MESSAGE" value="Minor change" />
+    <MESSAGE value="Hover changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Hover changes" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
