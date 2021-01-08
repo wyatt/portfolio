@@ -87,7 +87,7 @@ p {
   pointer-events: all;
   cursor: pointer;
   color: white;
-  transition: all 0.2s ease-in-out;
+  transition: all 0.1s ease-in-out;
   box-shadow: 0 0 0 1px white;
   display: inline-block;
   text-decoration: none;
@@ -156,7 +156,7 @@ p {
   overflow: hidden;
   position: relative;
   transition: all 0.5s ease-in-out;
-  box-shadow: 0 19px 38px rgba(0, 0, 0, 0.3), 0 15px 12px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
 }
 
 .col {
@@ -179,6 +179,7 @@ a:focus {
 }
 .item:hover::before {
   filter: brightness(90%);
+  transform: scale(1.1);
 }
 .item:hover p {
   opacity: 0;
