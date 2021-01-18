@@ -80,15 +80,16 @@ p {
   transition: all 0.2s ease-in-out;
 }
 .mb {
+  background: #0000002f;
   padding: 0.7em 1.95em;
   border: none;
-  border-radius: 0.5em;
+  border-radius: 0.2em;
   margin: 0 0.5em 0.75em 0.5em;
   pointer-events: all;
   cursor: pointer;
   color: white;
   transition: all 0.1s ease-in-out;
-  box-shadow: 0 0 0 1px white;
+  box-shadow: 0 25px 50px -12px transparent;
   display: inline-block;
   text-decoration: none;
 }
