@@ -69,14 +69,14 @@ h1 {
 }
 
 #container {
-  margin: 2% 10%;
+  margin: 2% 5%;
 }
 
 p {
   color: rgba(255, 255, 255, 0.9);
   margin-top: 0;
   margin-bottom: 1.1em;
-  font-size: 1.2em;
+  font-size: 1.5em;
   transition: all 0.2s ease-in-out;
 }
 .mb {
@@ -116,6 +116,39 @@ p {
   transform: scale(1.1);
 }
 
+.item-title {
+  font-size: 3.5em;
+}
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  height: 40vh;
+  max-height: 50vw;
+  border-radius: 20px;
+  text-align: center;
+  padding: 20px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.5s ease-in-out;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+@media only screen and (max-width: 1700px) {
+  .item {
+    height: 25vh;
+  }
+  .item-title {
+    font-size: 3em;
+  }
+}
+@media only screen and (max-width: 990px) {
+  .item {
+    height: 35vh;
+  }
+}
+
 @media only screen and (max-width: 768px) {
   body {
     flex-direction: column;
@@ -126,38 +159,30 @@ p {
   h1 {
     font-size: 4em;
   }
+  .item-title {
+    font-size: 3em;
+  }
+  .item {
+    height: 30vh;
+  }
+  p {
+    font-size: 1.2em;
+  }
   .mb {
     padding: 0.5em 0.75em;
+  }
+
+}
+@media only screen and (max-width: 500px) {
+  h1 {
+    font-size: 4em;
   }
   .item-title {
     font-size: 2em;
   }
 }
-@media only screen and (max-width: 400px) {
-  h1 {
-    font-size: 3em;
-  }
-}
 
-.item-title {
-  font-size: 3em;
-}
-.item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  height: 35vh;
-  min-height: 400px;
-  max-height: 600px;
-  border-radius: 30px;
-  text-align: center;
-  padding: 20px;
-  overflow: hidden;
-  position: relative;
-  transition: all 0.5s ease-in-out;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-}
+
 
 .col {
   margin: 15px 0;

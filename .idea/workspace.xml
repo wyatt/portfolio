@@ -64,7 +64,8 @@
       <workItem from="1609756383331" duration="39000" />
       <workItem from="1610031710831" duration="2115000" />
       <workItem from="1610120733142" duration="1005000" />
-      <workItem from="1610123793204" duration="136000" />
+      <workItem from="1610123793204" duration="825000" />
+      <workItem from="1611236564092" duration="1541000" />
     </task>
     <task id="LOCAL-00001" summary="added more projects">
       <created>1609084715146</created>
@@ -143,7 +144,14 @@
       <option name="project" value="LOCAL" />
       <updated>1610123517047</updated>
     </task>
-    <option name="localTasksCounter" value="12" />
+    <task id="LOCAL-00012" summary="Small changes">
+      <created>1610124022343</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1610124022343</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -172,7 +180,8 @@
     <MESSAGE value="Minor change" />
     <MESSAGE value="Hover changes" />
     <MESSAGE value="Margin changes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Margin changes" />
+    <MESSAGE value="Small changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Small changes" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
