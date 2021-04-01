@@ -7,6 +7,10 @@ const CustomStyles = createGlobalStyle`
     -webkit-tap-highlight-color: ${theme`colors.purple.500`};
     ${tw`antialiased`}
   }
+  html, body, #__next {
+    height: 100%;
+    width: 100%
+  }
 `;
 
 export const GlobalStyles = () => (
