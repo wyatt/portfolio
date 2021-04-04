@@ -117,7 +117,7 @@ const WorkItemContainer = styled.a<WorkItemContainerTypes>`
   width: 100%;
   height: 30vh;
   position: relative;
-  ${tw`text-white flex items-center justify-center font-semibold flex-col overflow-hidden rounded-xl transform hover:-translate-y-8 transition`}
+  ${tw`text-white flex items-center justify-center font-semibold flex-col overflow-hidden rounded-xl transform hover:-translate-y-4 transition`}
   &:hover {
     * > .letters {
       top: calc(50% - 40px) !important;
