@@ -18,6 +18,7 @@ const Home = () => {
         timezone={"Europe/London"}
         ticking={true}
         tw="text-white m-3 text-lg"
+        //@ts-ignore
         className={"animate__animated animate__delay-1s animate__fadeIn"}
       />
       <Name>Wyatt Sell</Name>
