@@ -18,7 +18,8 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "twin.d.ts",
+    "types/twin.d.ts",
+    "types/decs.d.ts",
     "pages/_document.js"
   ],
   "exclude": ["node_modules"]

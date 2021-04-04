@@ -8,11 +8,22 @@
     "start": "next start"
   },
   "dependencies": {
+    "@material-ui/core": "^4.11.3",
+    "@tailwindcss/aspect-ratio": "^0.2.0",
+    "animate.css": "^4.1.1",
+    "framer-motion": "^4.1.2",
+    "moment-timezone": "^0.5.33",
     "next": "10.0.4",
     "react": "17.0.1",
+    "react-alphabet-soup": "^0.0.9",
     "react-dom": "17.0.1",
+    "react-icons": "^4.2.0",
+    "react-live-clock": "^5.0.16",
+    "react-moment": "^1.1.1",
+    "react-text-loop": "^2.3.0",
     "styled-components": "^5.2.3",
-    "use-last-fm": "^0.6.0"
+    "swr": "^0.5.5",
+    "use-mobile-detect-hook": "^1.0.3"
   },
   "devDependencies": {
     "@types/node": "^14.14.16",
