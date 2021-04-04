@@ -44,6 +44,7 @@ export const Name = (props: { children: ReactNode }) => {
           tw="text-white text-lg lg:text-2xl font-semibold opacity-80"
           className={"animate__animated animate__delay-2s animate__fadeIn"}
           interval={2000}
+          mask={true}
         >
           {[
             "Frontend developer",
@@ -57,13 +58,13 @@ export const Name = (props: { children: ReactNode }) => {
           ))}
         </TextLoop>
       </div>
-      <div tw="flex transition space-x-3">
+      <div
+        tw="flex transition space-x-3"
+        className={"animate__animated animate__delay-1s animate__zoomIn"}
+      >
         <Button href="mailto:wyattsetonsell@gmail.com">Get In Touch</Button>
         <Link href="/work" passHref>
-          <a
-            tw="bg-black text-sm md:text-base bg-opacity-20 py-3 w-32 md:w-40 items-center justify-center text-white font-medium rounded-lg transition transform hover:scale-110 hover:shadow-2xl opacity-80 cursor-pointer flex items-center whitespace-pre"
-            className={"animate__animated animate__delay-1s animate__zoomIn"}
-          >
+          <a tw="bg-black text-sm md:text-base bg-opacity-20 py-3 w-32 md:w-40 items-center justify-center text-white font-medium rounded-lg transition transform hover:scale-110 hover:shadow-2xl opacity-80 cursor-pointer flex items-center whitespace-pre">
             See my work
           </a>
         </Link>
@@ -98,7 +99,6 @@ const Button = (props: { children: ReactNode; href?: string }) => {
   return (
     <a
       tw="bg-black text-sm md:text-base bg-opacity-20 py-3 w-32 md:w-40 items-center justify-center text-white font-medium rounded-lg transition transform hover:scale-110 hover:shadow-2xl opacity-80 cursor-pointer flex items-center whitespace-pre"
-      className={"animate__animated animate__delay-1s animate__zoomIn"}
       href={props.href}
     >
       {props.children}
