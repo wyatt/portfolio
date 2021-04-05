@@ -33,9 +33,17 @@ export default class MyDocument extends Document {
           <meta charset="UTF-8" />
           <link rel="preconnect" href="https://fonts.gstatic.com" />
           <link
+            rel="preload"
             href="https://fonts.googleapis.com/css2?family=Lexend:wght@100;300;400;500;600;700;800&display=swap"
-            rel="stylesheet"
+            as="style"
+            onload="this.onload=null;this.rel='stylesheet'"
           />
+          <noscript>
+            <link
+              rel="stylesheet"
+              href="https://fonts.googleapis.com/css2?family=Lexend:wght@100;300;400;500;600;700;800&display=swap"
+            />
+          </noscript>
           <title>Wyatt Sell</title>
           <meta name="description" content="Frontend developer" />
         </Head>
