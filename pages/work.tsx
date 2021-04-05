@@ -88,7 +88,7 @@ const WorkItem = (props: {
         <AlphabetSoup
           text={props.name}
           fontSize="48px"
-          fontFamily="Lexend"
+          fontFamily="Georgia"
           sorting="costFunction"
           transitionStyle="progressive"
           transitionTimingFunction="cubic-bezier(1, 0.24, 0.25, 1)"
@@ -119,10 +119,8 @@ const WorkItemContainer = styled.a<WorkItemContainerTypes>`
   position: relative;
   ${tw`text-white flex items-center justify-center font-semibold flex-col overflow-hidden rounded-xl transform hover:-translate-y-4 transition`}
   &:hover {
-    * > .letters {
-      top: calc(50% - 40px) !important;
-      margin-right: 5px;
-      ${tw`text-2xl`};
+    div > .letters {
+      top: calc(50% - 60px) !important;
     }
   }
   &::before {

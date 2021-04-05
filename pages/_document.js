@@ -30,13 +30,13 @@ export default class MyDocument extends Document {
     return (
       <Html lang="en">
         <Head>
-          <meta charset="UTF-8" />
+          <meta charSet="UTF-8" />
           <link rel="preconnect" href="https://fonts.gstatic.com" />
           <link
             rel="preload"
             href="https://fonts.googleapis.com/css2?family=Lexend:wght@100;300;400;500;600;700;800&display=swap"
             as="style"
-            onload="this.onload=null;this.rel='stylesheet'"
+            onLoad="this.onload=null;this.rel='stylesheet'"
           />
           <noscript>
             <link
