@@ -74,18 +74,21 @@ export const Name = (props: { children: ReactNode }) => {
           <IconLink
             href="https://github.com/wyatt"
             className={"animate__animated animate__delay-2s animate__fadeIn"}
+            aria-label="GitHub"
           >
             <RiGithubFill />
           </IconLink>
           <IconLink
             href="https://dsc.bio/wyatt"
             className={"animate__animated animate__delay-3s animate__fadeIn"}
+            aria-label="Discord"
           >
             <RiDiscordFill />
           </IconLink>
           <IconLink
             href="#"
             className={"animate__animated animate__delay-4s animate__fadeIn"}
+            aria-label="Medium"
           >
             <RiMediumFill />
           </IconLink>
