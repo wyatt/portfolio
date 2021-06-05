@@ -25,12 +25,12 @@ const Home = () => {
       {data?.message?.song ? (
         <div tw="flex justify-between align-bottom">
           <CurrentSong song={data.message.song} />
-          {/* <a
-            href="#"
+          <a
+            href="https://wyattsell.medium.com/the-making-of-my-portfolio-website-5d204b018649"
             tw="flex items-end text-white m-3 text-3xl transform transition hover:scale-110"
           >
             <RiInformationLine />
-          </a> */}
+          </a>
         </div>
       ) : (
         <div css={{ height: "68px" }} tw="m-3"></div>
