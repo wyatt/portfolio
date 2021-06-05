@@ -86,7 +86,7 @@ export const Name = (props: { children: ReactNode }) => {
             <RiDiscordFill />
           </IconLink>
           <IconLink
-            href="#"
+            href="https://wyattsell.medium.com/"
             className={"animate__animated animate__delay-4s animate__fadeIn"}
             aria-label="Medium"
           >
