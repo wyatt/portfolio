@@ -95,6 +95,7 @@ const WorkItem = (props: {
           transitionSpeedMultiplier={0.3}
           costFunctionYWeight={3}
           charactersClassName={"letters"}
+          untidyOnHover={true}
         />
       )}
       <p
