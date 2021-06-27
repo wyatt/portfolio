@@ -1,4 +1,4 @@
-export interface GradientProps {
+export interface GradientColors {
   colors: { color: string; position: string }[];
 }
 
