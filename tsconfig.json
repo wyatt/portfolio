@@ -18,9 +18,15 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
+<<<<<<< HEAD
     "src/types/twin.d.ts",
     "src/types/decs.d.ts",
     "src/pages/_document.js"
+=======
+    "types/twin.d.ts",
+    "types/decs.d.ts",
+    "pages/_document.js"
+>>>>>>> c8b62f7f3720554f8f8c230f487f3df91eea83af
   ],
   "exclude": ["node_modules"]
 }
