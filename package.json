@@ -8,20 +8,14 @@
     "start": "next start"
   },
   "dependencies": {
-<<<<<<< HEAD
     "@fontsource/lexend": "^4.4.5",
-=======
->>>>>>> c8b62f7f3720554f8f8c230f487f3df91eea83af
     "@material-ui/core": "^4.11.3",
     "@tailwindcss/aspect-ratio": "^0.2.0",
     "animate.css": "^4.1.1",
     "framer-motion": "^4.1.2",
     "moment-timezone": "^0.5.33",
     "next": "10.0.4",
-<<<<<<< HEAD
     "prettier": "^2.3.2",
-=======
->>>>>>> c8b62f7f3720554f8f8c230f487f3df91eea83af
     "react": "17.0.1",
     "react-alphabet-soup": "^0.0.9",
     "react-dom": "17.0.1",
