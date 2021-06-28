@@ -10,7 +10,7 @@ import {CurrentSong} from './CurrentSong';
 import tw from 'twin.macro';
 
 // Primary components
-export const FlexSpacer = () => <div css={{height: '84px'}} tw="m-3" />;
+export const FlexSpacer = () => <div css={{height: '60px'}} tw="m-3" />;
 export const Footer = () => {
 	const {data} = useSWR<SpotifyResponse>('/spotify', fetcher);
 	if (data?.success)
