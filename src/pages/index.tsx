@@ -32,9 +32,9 @@ export const MainContent = (props: {children: ReactNode}) => (
 			<SeeMyWorkButton href={'/work'}>See my work</SeeMyWorkButton>
 		</ButtonsContainer>
 		<IconsContainer>
-			<Icon icon={RiGithubFill} href={'https://github.com/wyatt'} />
-			<Icon icon={RiDiscordFill} href={'https://dsc.bio/wyatt'} />
-			<Icon icon={RiMediumFill} href={'https://wyattsell.medium.conm'} />
+			<Icon icon={RiGithubFill} href={'https://github.com/wyatt'} name={'Github'} />
+			<Icon icon={RiDiscordFill} href={'https://dsc.bio/wyatt'} name={'Discord'} />
+			<Icon icon={RiMediumFill} href={'https://wyattsell.medium.conm'} name={'Medium'} />
 		</IconsContainer>
 	</PrimaryContainer>
 );

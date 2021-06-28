@@ -69,8 +69,8 @@ const ButtonLink = tw.a`bg-black text-sm md:text-base bg-opacity-20 py-3 w-32 md
 
 export const IconsContainer = tw.div`flex space-x-2`;
 
-export const Icon = (props: {icon: IconType; href: string}) => (
-	<IconLink href={props.href} className={'animate__animated animate__delay-2s animate__fadeIn'}>
+export const Icon = (props: {icon: IconType; href: string; name: string}) => (
+	<IconLink href={props.href} className={'animate__animated animate__delay-2s animate__fadeIn'} aria-label={props.name}>
 		{props.icon({color: 'white', size: '2.25em'})}
 	</IconLink>
 );
