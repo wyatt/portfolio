@@ -8,3 +8,6 @@ Here's the source code for the frontend of [my portfolio](https://wyattsell.com)
 - 🎨 TailwindCSS + twin.macro: One of the nicest combos for React styling.
 - 💅 Styled components: For times when custom CSS was needed.
 - 🦘 Animate.css: For the fancy animations.
+
+
+[Backend code](https://github.com/wyatt/portfolio-backend)
