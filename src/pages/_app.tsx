@@ -19,6 +19,7 @@ export default function App({Component, pageProps, router}: AppProps) {
 			<MainContainer>
 				<Head>
 					<title>Wyatt Sell</title>
+					<meta name={'description'} content={'Web developer'} />
 				</Head>
 				<Component {...pageProps} key={router.route} />
 			</MainContainer>
