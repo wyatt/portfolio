@@ -1,42 +1,43 @@
-import React, { ReactNode } from "react";
-import useSWR from "swr";
-import { MainContainer } from "../components/Background";
-import Clock from "react-live-clock";
-import { Name, CurrentSong } from "../components/Landing";
-import { fetcher } from "../helper/fetcher";
-import tw from "twin.macro";
-import { RiInformationLine } from "react-icons/ri";
+import React, {ReactNode} from 'react';
+import {
+	Button,
+	ButtonsContainer,
+	Carousel,
+	FlexSpacer,
+	Footer,
+	Icon,
+	IconsContainer,
+	Name,
+	NameAndCarousel,
+	PrimaryContainer,
+	SeeMyWorkButton,
+} from '../components/Landing';
+import {RiDiscordFill, RiGithubFill, RiMediumFill} from 'react-icons/ri';
+const Home = () => (
+	<>
+		<FlexSpacer />
+		<MainContent>Wyatt Sell</MainContent>
+		<Footer />
+	</>
+);
 
-const Home = () => {
-  const { data, error } = useSWR("/spotify", fetcher);
-  if (error) return <div>failed to load</div>;
+export const MainContent = (props: {children: ReactNode}) => (
+	<PrimaryContainer>
+		<NameAndCarousel>
+			<Name>{props.children}</Name>
+			<Carousel phrases={['Web developer', 'Maker', 'Open source enthusiast', 'Programmer']} />
+		</NameAndCarousel>
+		<ButtonsContainer>
+			<Button href="mailto:wyattsetonsell@gmail.com">Get In Touch</Button>
+			<SeeMyWorkButton href={'/work'}>See my work</SeeMyWorkButton>
+		</ButtonsContainer>
+		<IconsContainer>
+			<Icon icon={RiGithubFill} href={'https://github.com/wyatt'} />
+			<Icon icon={RiDiscordFill} href={'https://dsc.bio/wyatt'} />
+			<Icon icon={RiMediumFill} href={'https://wyattsell.medium.conm'} />
+		</IconsContainer>
+	</PrimaryContainer>
+);
 
-  return (
-    <>
-      <Clock
-        format={"HH:mm"}
-        timezone={"Europe/London"}
-        ticking={true}
-        tw="text-white m-3 text-lg"
-        //@ts-ignore
-        className={"animate__animated animate__delay-1s animate__fadeIn"}
-      />
-      <Name>Wyatt Sell</Name>
-      {data?.message?.song ? (
-        <div tw="flex justify-between align-bottom">
-          <CurrentSong song={data.message.song} />
-          {/* <a
-            href="#"
-            tw="flex items-end text-white m-3 text-3xl transform transition hover:scale-110"
-          >
-            <RiInformationLine />
-          </a> */}
-        </div>
-      ) : (
-        <div css={{ height: "68px" }} tw="m-3"></div>
-      )}
-    </>
-  );
-};
-
+// noinspection JSUnusedGlobalSymbols
 export default Home;
