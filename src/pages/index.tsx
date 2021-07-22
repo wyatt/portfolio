@@ -34,7 +34,7 @@ export const MainContent = (props: {children: ReactNode}) => (
 		<IconsContainer>
 			<Icon icon={RiGithubFill} href={'https://github.com/wyatt'} name={'Github'} />
 			<Icon icon={RiDiscordFill} href={'https://dsc.bio/wyatt'} name={'Discord'} />
-			<Icon icon={RiMediumFill} href={'https://wyattsell.medium.conm'} name={'Medium'} />
+			<Icon icon={RiMediumFill} href={'https://wyattsell.medium.com'} name={'Medium'} />
 		</IconsContainer>
 	</PrimaryContainer>
 );
