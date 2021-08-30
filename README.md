@@ -1,4 +1,4 @@
-# 🧑🏻 My portfolio
+# 👨🏻‍💻 My portfolio
 Here's the source code for the frontend of [my portfolio](https://wyattsell.com). Read about how I made it [in my blog](https://wyattsell.medium.com/the-making-of-my-portfolio-website-5d204b018649). Feel free to browse!
 
 ### Technologies
