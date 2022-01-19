@@ -25,7 +25,7 @@ export const MainContent = (props: {children: ReactNode}) => (
 	<PrimaryContainer>
 		<NameAndCarousel>
 			<Name>{props.children}</Name>
-			<Carousel phrases={['Web developer', 'Maker', 'Open source enthusiast', 'Programmer']} />
+			<Carousel phrases={['Web developer', 'Maker', 'Open source enthusiast', 'Programmer', 'Professional productivity man']} />
 		</NameAndCarousel>
 		<ButtonsContainer>
 			<Button href="mailto:wyattsetonsell@gmail.com">Get In Touch</Button>
