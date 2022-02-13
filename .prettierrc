@@ -1,10 +1,9 @@
 {
-  "printWidth": 140,
-  "useTabs": true,
-  "tabWidth": 2,
-  "bracketSpacing": false,
-  "singleQuote": true,
-  "quoteProps": "consistent",
-  "arrowParens": "avoid",
-  "semi": true
+	"useTabs": true,
+	"singleQuote": true,
+	"printWidth": 80,
+	"bracketSpacing": false,
+	"arrowParens": "avoid",
+	"trailingComma": "all",
+	"proseWrap": "always"
 }
