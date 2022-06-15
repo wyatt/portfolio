@@ -59,20 +59,20 @@ export default function Home() {
 					</VStack>
 					<Text>
 						I'm a programmer and student who enjoys making cool stuff using
-						technology. I'm a massive productivity nerd, and am currently
-						working on an exam revision tool that will be released{' '}
-						<Link href={'https://wowwiki-archive.fandom.com/wiki/Soon'}>
-							soon<sup>tm</sup>
+						technology. I'm a massive productivity nerd, and I've released my
+						own revision app called{' '}
+						<Link href="https://revisio.app" textDecoration={'underline'}>
+							Revisio
 						</Link>
-						. I also have{' '}
+						. I love tinkering with electronics, and learning new things -
+						here's my blog
 						<Link
 							href={'https://wyattsell.medium.com'}
 							textDecoration={'underline'}
 						>
 							a blog
 						</Link>{' '}
-						where I'm trying to document the learning and creation of my various
-						side projects.
+						where I document my various projects and inventions.
 					</Text>
 				</VStack>
 				<VStack mt={10} w={'full'}>
@@ -108,14 +108,14 @@ export default function Home() {
 							url={'https://hamiltonpremiumtutoring.com'}
 						/>
 						<SiteImage
-							src={'/assets/gameoflife.png'}
+							src={'/assets/revisio.png'}
 							transform={[
 								'rotate(5deg) translate(20px,-20px)',
 								'rotate(5deg) translate(-30px,-50px)',
 								'rotate(5deg) translate(-110px,-10px)',
 							]}
-							name={'Game of Life'}
-							url={'https://gameoflife-omega.vercel.app/'}
+							name={'Revisio'}
+							url={'https://revisio.app/'}
 						/>
 					</Flex>
 				</VStack>
