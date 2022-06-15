@@ -65,12 +65,12 @@ export default function Home() {
 							Revisio
 						</Link>
 						. I love tinkering with electronics, and learning new things -
-						here's my blog
+						here's my{' '}
 						<Link
 							href={'https://wyattsell.medium.com'}
 							textDecoration={'underline'}
 						>
-							a blog
+							blog
 						</Link>{' '}
 						where I document my various projects and inventions.
 					</Text>
