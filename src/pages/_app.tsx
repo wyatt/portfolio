@@ -1,8 +1,17 @@
 import React from 'react';
-import {ChakraProvider} from '@chakra-ui/react';
+import {ChakraProvider, extendTheme} from '@chakra-ui/react';
 import {AppProps} from 'next/app';
 import {SWRConfig} from 'swr';
 import Head from 'next/head';
+import '@fontsource/prata';
+import '../global.css';
+
+const theme = extendTheme({
+	fonts: {
+		heading: `'Prata', sans-serif`,
+		body: `'Prata', serif;`,
+	},
+});
 
 export default function App({Component, pageProps}: AppProps) {
 	return (
@@ -12,7 +21,7 @@ export default function App({Component, pageProps}: AppProps) {
 				fetcher: url => fetch(url).then(res => res.json()),
 			}}
 		>
-			<ChakraProvider>
+			<ChakraProvider theme={theme}>
 				<Head>
 					<title>Wyatt Sell</title>
 					<meta

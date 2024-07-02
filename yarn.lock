@@ -1085,6 +1085,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/playfair-display@npm:^5.0.24":
+  version: 5.0.24
+  resolution: "@fontsource/playfair-display@npm:5.0.24"
+  checksum: b67ca9f1f5a732147dca964d1a36969637de212991391f252d555376654a9f8aada1446758b12ae954516beb973a35cd1095f9417d4ad9074d104e62224c4a57
+  languageName: node
+  linkType: hard
+
+"@fontsource/prata@npm:^5.0.19":
+  version: 5.0.19
+  resolution: "@fontsource/prata@npm:5.0.19"
+  checksum: 02619ee3890d90899d1b629486a585fbb2b826e30790df017ea2cc930964ea9a84632ef89cdc5a3533b0d566d2498f0878033e7e0dca7fdae6b90efd7f280ebf
+  languageName: node
+  linkType: hard
+
 "@next/env@npm:12.0.10":
   version: 12.0.10
   resolution: "@next/env@npm:12.0.10"
@@ -3380,6 +3394,8 @@ __metadata:
     "@chakra-ui/react": ^1.8.3
     "@emotion/react": ^11
     "@emotion/styled": ^11
+    "@fontsource/playfair-display": ^5.0.24
+    "@fontsource/prata": ^5.0.19
     "@types/node": ^17.0.17
     "@types/react": ^17.0.39
     "@typescript-eslint/eslint-plugin": ^5.11.0
