@@ -54,7 +54,7 @@ export default function Home() {
 									display={'flex'}
 									whiteSpace={'nowrap'}
 								>
-									Hey, I'm Wyatt&nbsp;
+									Hey, I’m Wyatt&nbsp;
 									<Text
 										as={'span'}
 										width={fullName ? '100%' : 0}
@@ -116,12 +116,12 @@ export default function Home() {
 					</HStack>
 					<VStack fontSize={24} lineHeight={1.6} spacing={4}>
 						<Text>
-							I'm studying Electrical and Computer Engineering (ECE) at Cornell
+							I’m studying Electrical and Computer Engineering (ECE) at Cornell
 							University with plans to minor in English. In my free time, I
 							enjoy writing software, running, and reading history, philosophy
-							and literature. I'm interested in computational epistemology and
+							and literature. I’m interested in computational epistemology and
 							in how we can better use technology to interpret knowledge and
-							augment our cognitive abilities. My current project (
+							augment our cognitive abilities. My latest project (
 							<Link textDecoration={'underline'} href={'https://maxims.app'}>
 								maxims.app
 							</Link>
@@ -195,7 +195,7 @@ export default function Home() {
 							))}
 						</Text>
 						<Text w={'100%'} pt={4}>
-							If you think we'd work well together, please get in touch!
+							If you think we’d work well together, please get in touch!
 						</Text>
 					</VStack>
 				</VStack>
