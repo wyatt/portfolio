@@ -135,7 +135,7 @@ export default function Home() {
 							<UnorderedList mt={3}>
 								<li>
 									<Link
-										href={'https://revisio.app'}
+										href={'https://remnote.com'}
 										textDecoration={'underline'}
 									>
 										Remnote (team)
@@ -155,7 +155,7 @@ export default function Home() {
 								</li>
 								<li>
 									<Link
-										href={'https://revisio.app'}
+										href={'https://samaritanscout.org'}
 										textDecoration={'underline'}
 									>
 										Samaritan Scout (team)
