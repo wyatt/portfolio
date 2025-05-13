@@ -135,6 +135,16 @@ export default function Home() {
 							<UnorderedList mt={3}>
 								<li>
 									<Link
+										href={'https://samaritanscout.org'}
+										textDecoration={'underline'}
+									>
+										Samaritan Scout (team)
+									</Link>
+									: The web's first search engine for volunteer oppurtunities,
+									leveraging LLMs and the latest in full-stack technologies.
+								</li>
+								<li>
+									<Link
 										href={'https://remnote.com'}
 										textDecoration={'underline'}
 									>
@@ -152,16 +162,6 @@ export default function Home() {
 									</Link>
 									: A full-stack SaaS that helps students revise for exam better
 									using algorithms and collaboration
-								</li>
-								<li>
-									<Link
-										href={'https://samaritanscout.org'}
-										textDecoration={'underline'}
-									>
-										Samaritan Scout (team)
-									</Link>
-									: The web's first search engine for volunteer oppurtunities,
-									leveraging LLMs and the latest in full-stack technologies.
 								</li>
 							</UnorderedList>
 						</Text>
