@@ -1,0 +1,106 @@
+:root {
+  --keyboard: hsl(300, 100%, 16%);
+  --keyboard-shadow: hsla(19, 50%, 66%, 0.2);
+  --keyboard-border: hsl(20, 91%, 5%);
+  --black-10: hsla(0, 0%, 0%, 0.1);
+  --black-20: hsla(0, 0%, 0%, 0.2);
+  --black-30: hsla(0, 0%, 0%, 0.3);
+  --black-50: hsla(0, 0%, 0%, 0.5);
+  --black-60: hsla(0, 0%, 0%, 0.6);
+  --white-20: hsla(0, 0%, 100%, 0.2);
+  --white-50: hsla(0, 0%, 100%, 0.5);
+  --white-80: hsla(0, 0%, 100%, 0.8);
+  --SCALE: 0.35;
+}
+
+#keyboard {
+  border: 1px solid var(--keyboard-border);
+  border-radius: calc(1rem * var(--SCALE));
+  background-color: var(--keyboard);
+  box-shadow:
+    0 0 50px var(--black-50) inset,
+    0 1px var(--keyboard-shadow) inset,
+    0 calc(5px * var(--SCALE)) calc(15px * var(--SCALE)) var(--black-50);
+  font-size: calc(1.5rem * var(--SCALE));
+}
+
+.offset {
+  margin: 0 0 0 calc(-1rem * var(--SCALE));
+}
+
+.white,
+.black {
+  position: relative;
+  float: left;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: calc(0.5rem * var(--SCALE)) 0;
+  user-select: none;
+  cursor: pointer;
+}
+
+#keyboard li:first-child {
+  border-radius: calc(5px * var(--SCALE)) 0 calc(5px * var(--SCALE))
+    calc(5px * var(--SCALE));
+}
+
+#keyboard li:last-child {
+  border-radius: 0 calc(5px * var(--SCALE)) calc(5px * var(--SCALE))
+    calc(5px * var(--SCALE));
+}
+
+.white {
+  height: calc(12.5rem * var(--SCALE));
+  width: calc(3.5rem * var(--SCALE));
+  z-index: 1;
+  border-left: 1px solid hsl(0, 0%, 73%);
+  border-bottom: 1px solid hsl(0, 0%, 73%);
+  border-radius: 0 0 calc(5px * var(--SCALE)) calc(5px * var(--SCALE));
+  box-shadow:
+    -1px 0 0 var(--white-80) inset,
+    0 0 5px hsl(0, 0%, 80%) inset,
+    0 0 3px var(--black-20);
+  background: linear-gradient(to bottom, hsl(0, 0%, 93%) 0%, white 100%);
+  color: var(--black-30);
+}
+
+.black {
+  height: calc(8rem * var(--SCALE));
+  width: calc(2rem * var(--SCALE));
+  margin: 0 0 0 calc(-1rem * var(--SCALE));
+  z-index: 2;
+  border: 1px solid black;
+  border-radius: 0 0 calc(3px * var(--SCALE)) calc(3px * var(--SCALE));
+  box-shadow:
+    -1px -1px 2px var(--white-20) inset,
+    0 -5px 2px 3px var(--black-60) inset,
+    0 2px 4px var(--black-50);
+  background: linear-gradient(45deg, hsl(0, 0%, 13%) 0%, hsl(0, 0%, 33%) 100%);
+  color: var(--white-50);
+}
+
+.white.pressed {
+  border-top: 1px solid hsl(0, 0%, 47%);
+  border-left: 1px solid hsl(0, 0%, 60%);
+  border-bottom: 1px solid hsl(0, 0%, 60%);
+  box-shadow:
+    2px 0 3px var(--black-10) inset,
+    -5px 5px 20px var(--black-20) inset,
+    0 0 3px var(--black-20);
+  background: linear-gradient(to bottom, white 0%, hsl(0, 0%, 91%) 100%);
+  outline: none;
+}
+
+.black.pressed {
+  box-shadow:
+    -1px -1px 2px var(--white-20) inset,
+    0 -2px 2px 3px var(--black-60) inset,
+    0 1px 2px var(--black-50);
+  background: linear-gradient(
+    to right,
+    hsl(0, 0%, 27%) 0%,
+    hsl(0, 0%, 13%) 100%
+  );
+  outline: none;
+}
