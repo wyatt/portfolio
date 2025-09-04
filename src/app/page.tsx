@@ -24,7 +24,7 @@ export default function Home() {
           front: funMode ? "bg-gray-600" : "bg-red-500",
           edge: funMode ? "bg-gray-800" : "bg-red-800",
         }}
-        className="absolute top-0 left-0 m-8 z-20"
+        className="absolute top-0 left-0 m-8 z-30"
       >
         {funMode ? "Return to boring mode" : "Activate Fun Mode"}
       </PushButton>

@@ -1,0 +1,26 @@
+.container {
+  transform: translate(50%, -50%) rotate(-10deg);
+}
+
+.container:hover {
+  transform: translate(50%, -50%) rotate(-10deg) scale(1.1);
+}
+
+.current-image {
+  mask: linear-gradient(to right, black 0%, black 70%, rgba(0, 0, 0, 0.3) 100%);
+  mask-size: 0% 100%;
+  mask-position: left;
+  mask-repeat: no-repeat;
+  animation: radialReveal 2.5s ease-in-out;
+}
+
+@keyframes radialReveal {
+  0% {
+    mask-size: 0% 100%;
+  }
+
+  100% {
+    mask-size: 120% 100%;
+    opacity: 1;
+  }
+}

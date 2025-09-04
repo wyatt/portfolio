@@ -2,6 +2,7 @@ import { useWindowSize } from "@uidotdev/usehooks";
 import { RecordSpinner } from "./RecordSpinner";
 import { Painting } from "./Painting";
 import Keyboard from "./Keyboard";
+import { Art } from "./Art";
 
 const SPACING = 4;
 
@@ -14,20 +15,36 @@ export const FunMode = ({
     {
       title: "Record Spinner",
       component: RecordSpinner,
-      top: "22%",
-      left: excludedBounds.left / 2,
+      style: {
+        top: "25%",
+        left: excludedBounds.left / 2,
+      },
     },
     {
       title: "Painting",
       component: Painting,
-      top: "30%",
+      style: {
+        top: "38%",
+        left: (excludedBounds.left / 2) * 0.8,
+      },
       left: (excludedBounds.left / 2) * 0.8,
     },
     {
       title: "Keyboard",
       component: Keyboard,
-      top: "64%",
+      style: {
+        top: "80%",
+        left: (excludedBounds.left / 2) * 1.2,
+      },
       left: (excludedBounds.left / 2) * 1.2,
+    },
+    {
+      title: "Art",
+      component: Art,
+      style: {
+        top: "15%",
+        right: excludedBounds.left / 2,
+      },
     },
   ];
 
@@ -37,8 +54,7 @@ export const FunMode = ({
         <content.component
           key={content.title}
           style={{
-            top: content.top,
-            left: content.left,
+            ...content.style,
             zIndex: 30,
           }}
         />

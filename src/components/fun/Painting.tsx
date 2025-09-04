@@ -293,7 +293,7 @@ export const Painting = (props: { style: React.CSSProperties }) => {
   const [isPainting, setIsPainting] = useState(false);
   const [brush, setBrush] = useState<Brush | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [useRandomSize, setUseRandomSize] = useState(true);
+  const [useRandomSize] = useState(false);
   const [isActivated, setIsActivated] = useState(false);
   const [color, setColor] = useState("transparent");
   const [previewColor, setPreviewColor] = useState("transparent");
@@ -439,7 +439,7 @@ export const Painting = (props: { style: React.CSSProperties }) => {
   useEffect(() => {
     if (!brush) return;
 
-    brush.size = 35;
+    brush.size = 45;
     brush.inkAmount = 7;
     brush.splashing = false;
     brush.dripping = true;
@@ -591,7 +591,7 @@ export const Painting = (props: { style: React.CSSProperties }) => {
 
       <canvas
         ref={canvasRef}
-        className={clsx("absolute top-0 left-0 w-full h-full z-10 opacity-70")}
+        className={clsx("absolute top-0 left-0 w-full h-full z-20 opacity-70")}
         onMouseDown={handlePointerStart}
         onMouseMove={handlePointerMove}
         onMouseLeave={handlePointerEnd}
@@ -606,7 +606,7 @@ export const Painting = (props: { style: React.CSSProperties }) => {
         }}
       />
       {isActivated && (
-        <div className="absolute top-0 right-0 w-full flex justify-end m-8">
+        <div className="absolute top-0 right-0 flex justify-end m-8">
           <div className="relative flex gap-2 z-20">
             <PushButton
               onClick={clearCanvas}
@@ -620,7 +620,10 @@ export const Painting = (props: { style: React.CSSProperties }) => {
             </PushButton>
 
             <PushButton
-              onClick={() => setIsActivated(false)}
+              onClick={() => {
+                clearCanvas();
+                setIsActivated(false);
+              }}
               colors={{
                 front: "bg-red-500",
                 edge: "bg-red-800",
