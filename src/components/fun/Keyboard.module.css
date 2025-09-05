@@ -1,4 +1,4 @@
-:root {
+#keyboard {
   --keyboard: hsl(300, 100%, 16%);
   --keyboard-shadow: hsla(19, 50%, 66%, 0.2);
   --keyboard-border: hsl(20, 91%, 5%);
@@ -11,9 +11,6 @@
   --white-50: hsla(0, 0%, 100%, 0.5);
   --white-80: hsla(0, 0%, 100%, 0.8);
   --SCALE: 0.35;
-}
-
-#keyboard {
   border: 1px solid var(--keyboard-border);
   border-radius: calc(1rem * var(--SCALE));
   background-color: var(--keyboard);
