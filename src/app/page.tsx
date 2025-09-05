@@ -8,7 +8,7 @@ import { RecordSpinner } from "@/components/fun/RecordSpinner";
 import { FunMode } from "@/components/fun/FunMode";
 
 export default function Home() {
-  const [funMode, setFunMode] = useState<boolean>(false);
+  const [funMode, setFunMode] = useState<boolean>(true);
   const [bounds, setBounds] = useState<{
     top: number;
     bottom: number;

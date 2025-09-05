@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 export const Art = (props: { style: React.CSSProperties }) => {
   const [art, setArt] = useState<
-    { title: string; artist: string; url: string }[]
+    { title: string; artist: string; image_url: string; url: string }[]
   >([]);
   const [artIdx, setCurrentArtIdx] = useState<number>(0);
   const [prevArtIdx, setPrevArtIdx] = useState<number>(0);
@@ -25,13 +25,17 @@ export const Art = (props: { style: React.CSSProperties }) => {
     return () => clearInterval(intervalCurrent);
   }, [art]);
 
-  console.log(artIdx, (artIdx - 1) % art.length, art);
-
   return (
     <div
-      className={clsx("absolute h-48 w-72 transition", styles.container)}
+      className={clsx(
+        "absolute h-48 w-72 transition cursor-pointer",
+        styles.container
+      )}
       style={{
         ...props.style,
+      }}
+      onClick={() => {
+        window.open(art[artIdx].url, "_blank");
       }}
     >
       <img
@@ -45,7 +49,7 @@ export const Art = (props: { style: React.CSSProperties }) => {
       {art.length > 0 && (
         <div className="relative px-14 pt-12 pb-10 w-full h-full box-border">
           <img
-            src={art[prevArtIdx].url}
+            src={art[prevArtIdx].image_url}
             alt={"Previous Image"}
             className={clsx(
               "absolute top-0 left-0 w-full h-full object-cover",
@@ -56,7 +60,7 @@ export const Art = (props: { style: React.CSSProperties }) => {
             }}
           />
           <img
-            src={art[artIdx].url}
+            src={art[artIdx].image_url}
             alt={art[artIdx].title}
             className={clsx(
               "absolute top-0 left-0 w-full h-full object-cover",
@@ -94,19 +98,24 @@ const ARTWORK_IDS = [
 ];
 
 export const getArtwork = async (): Promise<
-  { title: string; artist: string; url: string }[]
+  { title: string; artist: string; image_url: string; url: string }[]
 > => {
   const artworkData = await fetch(
-    `https://api.artic.edu/api/v1/artworks?ids=${ARTWORK_IDS.join(",")}&fields=title,artist_title,image_id`
+    `https://api.artic.edu/api/v1/artworks?ids=${ARTWORK_IDS.join(",")}&fields=id,title,artist_title,image_id`
   );
   const data = await artworkData.json().then((data) => {
-    console.log(data);
     return data.data.map(
-      (artwork: { title: string; artist_title: string; image_id: string }) => {
+      (artwork: {
+        title: string;
+        artist_title: string;
+        image_id: string;
+        id: string;
+      }) => {
         return {
           title: artwork.title,
           artist: artwork.artist_title,
-          url: `https://www.artic.edu/iiif/2/${artwork.image_id}/full/843,/0/default.jpg`,
+          image_url: `https://www.artic.edu/iiif/2/${artwork.image_id}/full/843,/0/default.jpg`,
+          url: `https://www.artic.edu/artworks/${artwork.id}`,
         };
       }
     );
