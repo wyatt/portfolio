@@ -66,7 +66,7 @@ export const Car = (props: { style: React.CSSProperties }) => {
     let decelInterval: NodeJS.Timeout | null = null;
     const handleKeyDown = (e: KeyboardEvent) => {
       setPosition((prev) => {
-        const rotationSpeed = 0.02;
+        const rotationSpeed = 0.1;
         const speedChange = 0.5;
         const maxSpeed = 12;
         const minSpeed = -4;
