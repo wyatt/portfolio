@@ -13,7 +13,7 @@ interface TrailLine {
   maxAge: number;
 }
 
-const WIDTH = 120;
+const WIDTH = 110;
 const ASPECT_RATIO = 300 / 450;
 
 export const Car = (props: { style: React.CSSProperties }) => {
@@ -34,14 +34,14 @@ export const Car = (props: { style: React.CSSProperties }) => {
   // Calculate ROOT_POS using useMemo to ensure it's recalculated when dependencies change
   const ROOT_POS = useMemo(
     () => ({
-      x: (windowWidth || window.innerWidth) - (props.style.right as number),
+      x: props.style.left as number,
       y:
         (parseInt((props.style.top as string).split("%")[0]) / 100) *
         (windowHeight || window.innerHeight),
       rotation: 0.2,
       speed: 0,
     }),
-    [props.style.right, props.style.top, windowWidth, windowHeight]
+    [props.style.left, props.style.top, windowWidth, windowHeight]
   );
 
   const [resetTimer, setResetTimer] = useState<NodeJS.Timeout | null>(null);

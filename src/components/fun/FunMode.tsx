@@ -4,6 +4,7 @@ import { Painting } from "./Painting";
 import Keyboard from "./Keyboard";
 import { Art } from "./Art";
 import { Car } from "./Car";
+import { Earth } from "./Earth";
 
 const SPACING = 4;
 
@@ -31,13 +32,12 @@ export const FunMode = ({
       left: (excludedBounds.left / 2) * 0.8,
     },
     {
-      title: "Keyboard",
-      component: Keyboard,
+      title: "Car",
+      component: Car,
       style: {
         top: "80%",
-        left: (excludedBounds.left / 2) * 1.2,
+        left: excludedBounds.left / 2,
       },
-      left: (excludedBounds.left / 2) * 1.2,
     },
     {
       title: "Art",
@@ -48,10 +48,18 @@ export const FunMode = ({
       },
     },
     {
-      title: "Car",
-      component: Car,
+      title: "Keyboard",
+      component: Keyboard,
       style: {
         top: "52%",
+        right: (excludedBounds.left / 2) * 1.2,
+      },
+    },
+    {
+      title: "Earth",
+      component: Earth,
+      style: {
+        top: "75%",
         right: excludedBounds.left / 2,
       },
     },

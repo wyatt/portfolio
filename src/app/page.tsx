@@ -26,7 +26,7 @@ export default function Home() {
         }}
         className="absolute top-0 left-0 m-8 z-30"
       >
-        {funMode ? "Return to boring mode" : "Activate Fun Mode"}
+        {funMode ? "Activate Boring Mode" : "Activate Fun Mode"}
       </PushButton>
       {funMode && <FunMode excludedBounds={bounds} />}
       <Content setBounds={setBounds} />

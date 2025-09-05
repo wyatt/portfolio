@@ -76,13 +76,14 @@ export const Content = (props: {
         <i>Cornell University</i>, with extensive experience in software
         development, both individually and in large teams. I'm{" "}
         <i>minoring in English</i>, and I enjoy reading and learning about
-        everything! You can{" "}
+        everything!
+        {/* You can{" "}
         <i>
           read some of my pieces{" "}
           <a href="https://wyattsell.com/blog" className="underline">
             here
           </a>
-        </i>
+        </i> */}
         {/* I'm a Computer Engineer with 8+ years of experience in software
         development, both individually and in large teams. Proficient in most
         stages of product creation, including UI design, testing, deployment,

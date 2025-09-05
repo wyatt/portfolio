@@ -212,7 +212,7 @@ export default function Keyboard(props: { style: React.CSSProperties }) {
       className="absolute z-30"
       style={{
         ...props.style,
-        transform: "translate(-65%, -50%) rotate(10deg)",
+        transform: "translate(65%, -50%) rotate(10deg)",
       }}
     >
       <ul id={styles.keyboard} className="inline-flex font-sans font-bold p-2">
