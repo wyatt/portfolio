@@ -1,10 +1,29 @@
 import { useWindowSize } from "@uidotdev/usehooks";
 import { RecordSpinner } from "./RecordSpinner";
-import { Painting } from "./Painting";
-import Keyboard from "./Keyboard";
-import { Art } from "./Art";
-import { Car } from "./Car";
-import { Earth } from "./Earth";
+import dynamic from "next/dynamic";
+
+const Earth = dynamic(() => import("./Earth").then((mod) => mod.Earth), {
+  ssr: false,
+});
+
+const Car = dynamic(() => import("./Car").then((mod) => mod.Car), {
+  ssr: false,
+});
+
+const Art = dynamic(() => import("./Art").then((mod) => mod.Art), {
+  ssr: false,
+});
+
+const Keyboard = dynamic(() => import("./Keyboard"), {
+  ssr: false,
+});
+
+const Painting = dynamic(
+  () => import("./Painting").then((mod) => mod.Painting),
+  {
+    ssr: false,
+  }
+);
 
 const SPACING = 4;
 
