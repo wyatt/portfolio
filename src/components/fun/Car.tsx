@@ -1,5 +1,13 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useMemo,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import { useWindowSize } from "@uidotdev/usehooks";
+import { useAnimationFrame } from "motion/react";
 
 interface TrailPoint {
   x: number;
@@ -16,8 +24,13 @@ interface TrailLine {
 const WIDTH = 110;
 const ASPECT_RATIO = 300 / 450;
 
-export const Car = (props: { style: React.CSSProperties }) => {
+export const Car = (props: {
+  style: React.CSSProperties;
+  shouldAnimate: boolean;
+  incrementStep: () => void;
+}) => {
   const { width: windowWidth, height: windowHeight } = useWindowSize();
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const [position, setPosition] = useState<{
     x: number;
@@ -30,6 +43,61 @@ export const Car = (props: { style: React.CSSProperties }) => {
     rotation: 0,
     speed: 0,
   });
+
+  // Spring-mass-damper animation state
+  const [scaleAnimation, setScaleAnimation] = useState({
+    scale: 0,
+    velocity: 0,
+    target: 1,
+    isAnimating: false,
+  });
+
+  // Opacity animation state
+  const [opacityAnimation, setOpacityAnimation] = useState({
+    opacity: 0,
+    velocity: 0,
+    target: 1,
+    isAnimating: false,
+  });
+
+  // Preload the car image
+  const carImage = useMemo(() => {
+    const img = new Image();
+    img.src = "/fun/mustang.png";
+    return img;
+  }, []);
+
+  // Track image loading state
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  // Monitor image loading
+  useEffect(() => {
+    if (carImage.complete) {
+      setImageLoaded(true);
+    } else {
+      carImage.onload = () => setImageLoaded(true);
+    }
+  }, [carImage]);
+
+  useEffect(() => {
+    if (scaleAnimation.scale > 0.95 && opacityAnimation.opacity > 0.95) {
+      props.incrementStep();
+    }
+
+    if (
+      props.shouldAnimate &&
+      scaleAnimation.scale < 0.95 &&
+      opacityAnimation.opacity < 0.95
+    ) {
+      setScaleAnimation((prev) => ({ ...prev, isAnimating: true }));
+      setOpacityAnimation((prev) => ({ ...prev, isAnimating: true }));
+    }
+  }, [
+    scaleAnimation.scale,
+    opacityAnimation.opacity,
+    props.incrementStep,
+    props.shouldAnimate,
+  ]);
 
   // Calculate ROOT_POS using useMemo to ensure it's recalculated when dependencies change
   const ROOT_POS = useMemo(
@@ -60,6 +128,67 @@ export const Car = (props: { style: React.CSSProperties }) => {
   useEffect(() => {
     setPosition(ROOT_POS);
   }, [ROOT_POS]);
+
+  // Play audio, loop smoothly while in motion, adjust volume by speed, stop when stopped
+  // useEffect(() => {
+  //   // Create audio only once
+  //   if (!audioRef.current) {
+  //     audioRef.current = new Audio("/fun/car-engine.mp3");
+  //     audioRef.current.loop = false; // We'll handle looping manually for smoothness
+  //     audioRef.current.volume = 0;
+  //   }
+  //   const audio = audioRef.current;
+
+  //   // Duration to trim from start/end for smooth loop (in seconds)
+  //   const TRIM = 0.235;
+
+  //   // Helper to handle smooth looping
+  //   const handleTimeUpdate = () => {
+  //     if (audio.duration && audio.currentTime > audio.duration - TRIM) {
+  //       audio.currentTime = TRIM;
+  //       audio.play().catch(() => {});
+  //     }
+  //   };
+
+  //   if (position.speed > 0) {
+  //     // Set volume based on speed (clamp between 0.2 and 1)
+  //     const minVol = 0.4;
+  //     const maxVol = 1;
+  //     const maxSpeed = 12;
+  //     const vol = Math.min(
+  //       maxVol,
+  //       minVol + (Math.abs(position.speed) / maxSpeed) * (maxVol - minVol)
+  //     );
+  //     audio.volume = vol;
+
+  //     // Attach timeupdate for smooth loop
+  //     audio.removeEventListener("timeupdate", handleTimeUpdate);
+  //     audio.addEventListener("timeupdate", handleTimeUpdate);
+
+  //     // Play if not already playing, start at TRIM for smoothness
+  //     if (audio.paused) {
+  //       audio.currentTime = TRIM;
+  //       audio.play().catch(() => {});
+  //     }
+  //   } else {
+  //     // Pause and reset if stopped
+  //     audio.removeEventListener("timeupdate", handleTimeUpdate);
+  //     if (!audio.paused) {
+  //       audio.pause();
+  //       audio.currentTime = 0;
+  //     }
+  //     audio.volume = 0;
+  //   }
+
+  //   return () => {
+  //     audio.removeEventListener("timeupdate", handleTimeUpdate);
+  //     if (audio) {
+  //       audio.pause();
+  //       audio.currentTime = 0;
+  //       audio.volume = 0;
+  //     }
+  //   };
+  // }, [position.speed]);
 
   // Handle keyboard input
   useEffect(() => {
@@ -146,6 +275,79 @@ export const Car = (props: { style: React.CSSProperties }) => {
       clearTimeout(resetTimer ?? undefined);
     };
   }, [ROOT_POS, position.speed]);
+
+  // Spring-mass-damper animation using useAnimationFrame
+  useAnimationFrame((time, delta) => {
+    const isAnimating =
+      scaleAnimation.isAnimating || opacityAnimation.isAnimating;
+    if (!isAnimating) return;
+
+    // Update scale animation
+    setScaleAnimation((prev) => {
+      const springConstant = 200; // Controls spring stiffness
+      const damping = 50; // Controls damping (0 = no damping, 1 = critical damping)
+      const mass = 1; // Mass of the object
+
+      // Calculate spring force (F = -kx)
+      const displacement = prev.target - prev.scale;
+      const springForce = springConstant * displacement;
+
+      // Calculate damping force (F = -cv)
+      const dampingForce = damping * prev.velocity;
+
+      // Calculate acceleration (F = ma, so a = F/m)
+      const acceleration = (springForce - dampingForce) / mass;
+
+      // Update velocity and position using Euler integration
+      const newVelocity = prev.velocity + acceleration * (delta / 1000); // Convert delta to seconds
+      const newScale = prev.scale + newVelocity * (delta / 1000);
+
+      // Check if animation is complete (close enough to target and low velocity)
+      const isComplete =
+        Math.abs(newScale - prev.target) < 0.001 &&
+        Math.abs(newVelocity) < 0.001;
+
+      return {
+        scale: Math.max(0, newScale), // Ensure scale doesn't go below 0
+        velocity: newVelocity,
+        target: prev.target,
+        isAnimating: !isComplete,
+      };
+    });
+
+    // Update opacity animation
+    setOpacityAnimation((prev) => {
+      const springConstant = 8; // Slightly slower than scale for smoother fade
+      const damping = 2.5;
+      const mass = 0.1;
+
+      // Calculate spring force (F = -kx)
+      const displacement = prev.target - prev.opacity;
+      const springForce = springConstant * displacement;
+
+      // Calculate damping force (F = -cv)
+      const dampingForce = damping * prev.velocity;
+
+      // Calculate acceleration (F = ma, so a = F/m)
+      const acceleration = (springForce - dampingForce) / mass;
+
+      // Update velocity and position using Euler integration
+      const newVelocity = prev.velocity + acceleration * (delta / 1000);
+      const newOpacity = prev.opacity + newVelocity * (delta / 1000);
+
+      // Check if animation is complete
+      const isComplete =
+        Math.abs(newOpacity - prev.target) < 0.001 &&
+        Math.abs(newVelocity) < 0.001;
+
+      return {
+        opacity: Math.max(0, Math.min(1, newOpacity)), // Clamp between 0 and 1
+        velocity: newVelocity,
+        target: prev.target,
+        isAnimating: !isComplete,
+      };
+    });
+  });
 
   // Update position based on speed and rotation using requestAnimationFrame
   useEffect(() => {
@@ -284,7 +486,7 @@ export const Car = (props: { style: React.CSSProperties }) => {
 
   // Draw the car
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !imageLoaded) return;
     const ctx = canvasRef.current.getContext("2d");
     if (!ctx) return;
 
@@ -446,14 +648,12 @@ export const Car = (props: { style: React.CSSProperties }) => {
       ctx.restore();
     }
 
-    // Save context for rotation
+    // Save context for rotation, scaling, and opacity
     ctx.save();
     ctx.translate(position.x, position.y);
+    ctx.scale(scaleAnimation.scale, scaleAnimation.scale);
+    ctx.globalAlpha = opacityAnimation.opacity;
     ctx.rotate(position.rotation);
-
-    // Draw car using mustang.png image
-    const carImage = new window.Image();
-    carImage.src = "/fun/mustang.png";
 
     // Drop shadow settings
     const shadowColor = "rgba(0,0,0,0.7)";
@@ -478,28 +678,27 @@ export const Car = (props: { style: React.CSSProperties }) => {
       ctxToUse.restore();
     };
 
-    if (carImage.complete) {
+    // Only draw if image is loaded and animations are ready
+    if (
+      imageLoaded &&
+      scaleAnimation.scale > 0.01 &&
+      opacityAnimation.opacity > 0.01
+    ) {
       drawCarWithShadow(ctx);
-    } else {
-      carImage.onload = () => {
-        if (canvasRef.current) {
-          const ctx2 = canvasRef.current.getContext("2d");
-          if (ctx2) {
-            ctx2.save();
-            ctx2.translate(position.x, position.y);
-            ctx2.rotate(position.rotation);
-            // Draw with drop shadow
-            drawCarWithShadow(ctx2);
-            ctx2.restore();
-          }
-        }
-      };
-      // fallback while loading
     }
 
     // Restore context
     ctx.restore();
-  }, [position, leftTrail, rightTrail, canvasRef.current]);
+  }, [
+    position,
+    leftTrail,
+    rightTrail,
+    scaleAnimation.scale,
+    opacityAnimation.opacity,
+    imageLoaded,
+    carImage,
+    canvasRef.current,
+  ]);
 
   return (
     <>

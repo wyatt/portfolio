@@ -54,7 +54,7 @@ export const Content = (props: {
 
   return (
     <div
-      className="flex flex-col items-center w-full px-6 py-10 md:p-0 md:w-3xl gap-2 overflow-y-scroll bg-white z-10"
+      className="flex flex-col items-center w-full px-4 py-10 md:p-0 md:w-3xl gap-2 overflow-y-scroll bg-white z-10"
       ref={contentRef}
     >
       <h1 className="text-4xl">Wyatt Sell</h1>

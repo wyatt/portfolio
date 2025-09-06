@@ -1,13 +1,26 @@
 import clsx from "clsx";
 import styles from "./Art.module.css";
-import { useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { motion } from "motion/react";
 
-export const Art = (props: { style: React.CSSProperties }) => {
+export const Art = (props: {
+  style: React.CSSProperties;
+  shouldAnimate: boolean;
+  incrementStep: () => void;
+}) => {
   const [art, setArt] = useState<
     { title: string; artist: string; image_url: string; url: string }[]
   >([]);
   const [artIdx, setCurrentArtIdx] = useState<number>(0);
   const [prevArtIdx, setPrevArtIdx] = useState<number>(0);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
     getArtwork().then((data) => {
@@ -25,23 +38,53 @@ export const Art = (props: { style: React.CSSProperties }) => {
     return () => clearInterval(intervalCurrent);
   }, [art]);
 
+  const isReady = useMemo(() => {
+    return isLoaded && art.length > 0 && props.shouldAnimate;
+  }, [isLoaded, art, props.shouldAnimate]);
+
   return (
-    <div
-      className={clsx(
-        "absolute h-48 w-72 transition cursor-pointer",
-        styles.container
-      )}
+    <motion.div
+      className={clsx("absolute h-48 w-72 cursor-pointer")}
       style={{
         ...props.style,
       }}
       onClick={() => {
         window.open(art[artIdx].url, "_blank");
       }}
+      initial={{
+        scale: 0,
+        opacity: 0,
+        x: "50%",
+        y: "-50%",
+        rotate: "-10deg",
+      }}
+      animate={{
+        scale: isReady ? 1 : 0,
+        opacity: isReady ? 1 : 0,
+        x: "50%",
+        y: "-50%",
+        rotate: "-10deg",
+      }}
+      whileHover={{ scale: 1.1 }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      }}
+      onAnimationComplete={() => {
+        if (isReady) {
+          props.incrementStep();
+        }
+      }}
     >
       <img
         src="/fun/picture_frame.png"
         alt="Picture Frame"
         className="h-full absolute z-10"
+        onLoad={() => {
+          console.log("loaded");
+          setIsLoaded(true);
+        }}
         style={{
           filter: "drop-shadow(0 0 7px rgba(0, 0, 0, 0.5))",
         }}
@@ -86,7 +129,7 @@ export const Art = (props: { style: React.CSSProperties }) => {
           <i>{art[artIdx].artist}</i>
         </p>
       )}
-    </div>
+    </motion.div>
   );
 };
 

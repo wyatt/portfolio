@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Keyboard.module.css";
 import clsx from "clsx";
+import { motion } from "motion/react";
 
 const getElementByNote = (note: string) =>
   note && document.querySelector(`[data-note="${note}"]`);
@@ -76,7 +77,11 @@ const keys = {
   semicolon: { note: "E", octaveOffset: 1 },
 };
 
-export default function Keyboard(props: { style: React.CSSProperties }) {
+export default function Keyboard(props: {
+  style: React.CSSProperties;
+  shouldAnimate: boolean;
+  incrementStep: () => void;
+}) {
   const audioContextRef = useRef<AudioContext | null>(null);
   const [activeNotes, setActiveNotes] = useState<Map<string, OscillatorNode>>(
     new Map()
@@ -207,12 +212,39 @@ export default function Keyboard(props: { style: React.CSSProperties }) {
     [activeNotes]
   );
 
+  const isReady = props.shouldAnimate;
+
   return (
-    <div
+    <motion.div
       className="absolute z-30"
       style={{
         ...props.style,
         transform: "translate(65%, -50%) rotate(10deg)",
+      }}
+      initial={{
+        scale: 0,
+        opacity: 0,
+        x: "50%",
+        y: "-50%",
+        rotate: "-10deg",
+      }}
+      animate={{
+        scale: isReady ? 1 : 0,
+        opacity: isReady ? 1 : 0,
+        x: "50%",
+        y: "-50%",
+        rotate: "-10deg",
+      }}
+      whileHover={{ scale: 1.1 }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      }}
+      onAnimationComplete={() => {
+        if (isReady) {
+          props.incrementStep();
+        }
       }}
     >
       <ul id={styles.keyboard} className="inline-flex font-sans font-bold p-2">
@@ -373,6 +405,6 @@ export default function Keyboard(props: { style: React.CSSProperties }) {
       <p className="text-center font-sans text-sm text-gray-400 font-semibold">
         PLAY A TUNE
       </p>
-    </div>
+    </motion.div>
   );
 }
