@@ -1,6 +1,7 @@
 import { useWindowSize } from "@uidotdev/usehooks";
-import { RecordSpinner } from "./RecordSpinner";
+import { AnimatePresence } from "motion/react";
 import dynamic from "next/dynamic";
+import { useState } from "react";
 
 const Earth = dynamic(() => import("./Earth").then((mod) => mod.Earth), {
   ssr: false,
@@ -25,19 +26,23 @@ const Painting = dynamic(
   }
 );
 
-const SPACING = 4;
+const RecordSpinner = dynamic(() =>
+  import("./RecordSpinner").then((mod) => mod.RecordSpinner)
+);
 
 export const FunMode = ({
   excludedBounds,
 }: {
   excludedBounds: { top: number; bottom: number; left: number; right: number };
 }) => {
+  const [animateStep, setAnimateStep] = useState<number>(0);
+
   const FUN_CONTENT = [
     {
-      title: "Record Spinner",
-      component: RecordSpinner,
+      title: "Car",
+      component: Car,
       style: {
-        top: "25%",
+        top: "80%",
         left: excludedBounds.left / 2,
       },
     },
@@ -45,16 +50,15 @@ export const FunMode = ({
       title: "Painting",
       component: Painting,
       style: {
-        top: "38%",
+        top: "51%",
         left: (excludedBounds.left / 2) * 0.8,
       },
-      left: (excludedBounds.left / 2) * 0.8,
     },
     {
-      title: "Car",
-      component: Car,
+      title: "Record Spinner",
+      component: RecordSpinner,
       style: {
-        top: "80%",
+        top: "25%",
         left: excludedBounds.left / 2,
       },
     },
@@ -84,18 +88,29 @@ export const FunMode = ({
     },
   ];
 
-  console.log(excludedBounds);
+  console.log(animateStep);
 
   return (
     <div className="absolute top-0 left-0 w-full h-full">
-      {FUN_CONTENT.map((content) => (
-        <content.component
-          key={content.title}
-          style={{
-            ...content.style,
-            zIndex: 30,
-          }}
-        />
+      {FUN_CONTENT.map((content, i) => (
+        <AnimatePresence key={content.title}>
+          <content.component
+            key={content.title}
+            shouldAnimate={animateStep >= i}
+            incrementStep={() =>
+              setAnimateStep((prev) => {
+                if (prev > i) {
+                  return prev;
+                }
+                return prev + 1;
+              })
+            }
+            style={{
+              ...content.style,
+              zIndex: 30,
+            }}
+          />
+        </AnimatePresence>
       ))}
     </div>
   );
