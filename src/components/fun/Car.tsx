@@ -44,11 +44,37 @@ export const Car = (props: {
     speed: 0,
   });
 
+  // Track which keys are currently pressed
+  const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
+
+  // Physics state for smooth acceleration/deceleration
+  const [physics, setPhysics] = useState({
+    targetSpeed: 0,
+    currentSpeed: 0,
+    targetRotation: 0,
+    currentRotation: 0,
+  });
+
+  // Smooth transition state for reset
+  const [resetTransition, setResetTransition] = useState({
+    isTransitioning: false,
+    targetX: 0,
+    targetY: 0,
+    targetRotation: 0,
+    startX: 0,
+    startY: 0,
+    startRotation: 0,
+    progress: 0,
+  });
+
+  // Track if mouse is over the car for cursor styling
+  const [isMouseOverCar, setIsMouseOverCar] = useState(false);
+
   // Spring-mass-damper animation state
   const [scaleAnimation, setScaleAnimation] = useState({
     scale: 0,
     velocity: 0,
-    target: 1,
+    target: 0,
     isAnimating: false,
   });
 
@@ -56,7 +82,7 @@ export const Car = (props: {
   const [opacityAnimation, setOpacityAnimation] = useState({
     opacity: 0,
     velocity: 0,
-    target: 1,
+    target: 0,
     isAnimating: false,
   });
 
@@ -83,21 +109,28 @@ export const Car = (props: {
     if (scaleAnimation.scale > 0.95 && opacityAnimation.opacity > 0.95) {
       props.incrementStep();
     }
+  }, [scaleAnimation.scale, opacityAnimation.opacity, props.incrementStep]);
 
-    if (
-      props.shouldAnimate &&
-      scaleAnimation.scale < 0.95 &&
-      opacityAnimation.opacity < 0.95
-    ) {
-      setScaleAnimation((prev) => ({ ...prev, isAnimating: true }));
-      setOpacityAnimation((prev) => ({ ...prev, isAnimating: true }));
+  // Handle animation based on shouldAnimate prop changes only
+  useEffect(() => {
+    if (props.shouldAnimate) {
+      // Animate to visible state (scale and opacity to 1)
+      setScaleAnimation((prev) => ({ ...prev, target: 1, isAnimating: true }));
+      setOpacityAnimation((prev) => ({
+        ...prev,
+        target: 1,
+        isAnimating: true,
+      }));
+    } else {
+      // Animate to hidden state (scale and opacity to 0)
+      setScaleAnimation((prev) => ({ ...prev, target: 0, isAnimating: true }));
+      setOpacityAnimation((prev) => ({
+        ...prev,
+        target: 0,
+        isAnimating: true,
+      }));
     }
-  }, [
-    scaleAnimation.scale,
-    opacityAnimation.opacity,
-    props.incrementStep,
-    props.shouldAnimate,
-  ]);
+  }, [props.shouldAnimate]);
 
   // Calculate ROOT_POS using useMemo to ensure it's recalculated when dependencies change
   const ROOT_POS = useMemo(
@@ -127,6 +160,12 @@ export const Car = (props: {
   // Initialize position with correct ROOT_POS after component mounts
   useEffect(() => {
     setPosition(ROOT_POS);
+    // Set initial rotation to 0.2 when component first loads
+    setPhysics((prev) => ({
+      ...prev,
+      targetRotation: 0.2,
+      currentRotation: 0.2,
+    }));
   }, [ROOT_POS]);
 
   // Play audio, loop smoothly while in motion, adjust volume by speed, stop when stopped
@@ -190,67 +229,23 @@ export const Car = (props: {
   //   };
   // }, [position.speed]);
 
-  // Handle keyboard input
+  // Handle keyboard input with proper key tracking
   useEffect(() => {
-    let decelInterval: NodeJS.Timeout | null = null;
     const handleKeyDown = (e: KeyboardEvent) => {
-      setPosition((prev) => {
-        const rotationSpeed = 0.1;
-        const speedChange = 0.5;
-        const maxSpeed = 12;
-        const minSpeed = -4;
-
-        switch (e.key) {
-          case "ArrowUp":
-            return {
-              ...prev,
-              speed: Math.min(prev.speed + speedChange, maxSpeed),
-            };
-          case "ArrowDown":
-            return {
-              ...prev,
-              speed: Math.max(prev.speed - speedChange, minSpeed),
-            };
-          case "ArrowLeft":
-            return {
-              ...prev,
-              rotation: prev.rotation - rotationSpeed,
-            };
-          case "ArrowRight":
-            return {
-              ...prev,
-              rotation: prev.rotation + rotationSpeed,
-            };
-          default:
-            return prev;
-        }
-      });
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+        setPressedKeys((prev) => new Set(prev).add(e.key));
+      }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case "ArrowUp":
-          // Gradually decelerate to zero
-          const deceleration = 0.2;
-          const decelerate = () => {
-            setPosition((prev) => {
-              if (Math.abs(prev.speed) <= deceleration) {
-                if (decelInterval) {
-                  clearInterval(decelInterval);
-                }
-                return { ...prev, speed: 0 };
-              }
-              return {
-                ...prev,
-                speed:
-                  prev.speed > 0
-                    ? prev.speed - deceleration
-                    : prev.speed + deceleration,
-              };
-            });
-          };
-          // Decelerate every 16ms until speed is zero
-          decelInterval = setInterval(decelerate, 30);
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+        e.preventDefault();
+        setPressedKeys((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(e.key);
+          return newSet;
+        });
       }
     };
 
@@ -260,32 +255,256 @@ export const Car = (props: {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [position.speed, props.style]);
+  }, []);
 
+  // Track if the car has ever been driven to prevent initial reset timer
+  const [hasBeenDriven, setHasBeenDriven] = useState(false);
+
+  // Handle reset timeout - 5 seconds after speed becomes 0, cancel if speed increases
   useEffect(() => {
-    if (position.speed === 0) {
-      setResetTimer(
-        setTimeout(() => {
-          setPosition(ROOT_POS);
-        }, 5000)
-      );
+    // Clear any existing timer when speed changes
+    if (resetTimer) {
+      clearTimeout(resetTimer);
+      setResetTimer(null);
+    }
+
+    // Only start timer when speed becomes 0 AND the car has been driven before
+    if (Math.abs(position.speed) < 0.01 && hasBeenDriven) {
+      const timer = setTimeout(() => {
+        // Start smooth transition back to original position
+        setResetTransition({
+          isTransitioning: true,
+          targetX: ROOT_POS.x,
+          targetY: ROOT_POS.y,
+          targetRotation: ROOT_POS.rotation,
+          startX: position.x,
+          startY: position.y,
+          startRotation: position.rotation,
+          progress: 0,
+        });
+        setPhysics((prev) => ({
+          ...prev,
+          targetSpeed: 0,
+          currentSpeed: 0,
+        }));
+        setResetTimer(null);
+      }, 5000);
+
+      setResetTimer(timer);
     }
 
     return () => {
-      clearTimeout(resetTimer ?? undefined);
+      if (resetTimer) {
+        clearTimeout(resetTimer);
+      }
     };
-  }, [ROOT_POS, position.speed]);
+  }, [ROOT_POS, position.speed, hasBeenDriven]);
 
-  // Spring-mass-damper animation using useAnimationFrame
+  // Check if a point is within the car's bounds
+  const isPointInCar = (mouseX: number, mouseY: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return false;
+
+    const rect = canvas.getBoundingClientRect();
+    const canvasX = mouseX - rect.left;
+    const canvasY = mouseY - rect.top;
+
+    // Car dimensions
+    const carWidth = WIDTH;
+    const carHeight = WIDTH / ASPECT_RATIO;
+
+    // Calculate car bounds in canvas coordinates
+    const carLeft = position.x - carWidth / 2;
+    const carRight = position.x + carWidth / 2;
+    const carTop = position.y - carHeight / 2;
+    const carBottom = position.y + carHeight / 2;
+
+    // Simple rectangular bounds check (not accounting for rotation for simplicity)
+    return (
+      canvasX >= carLeft &&
+      canvasX <= carRight &&
+      canvasY >= carTop &&
+      canvasY <= carBottom
+    );
+  };
+
+  // Handle mouse move to update cursor
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const isOverCar = isPointInCar(e.clientX, e.clientY);
+    setIsMouseOverCar(isOverCar);
+  };
+
+  // Handle mouse leave to reset cursor
+  const handleMouseLeave = () => {
+    setIsMouseOverCar(false);
+  };
+
+  // Handle click to reset car to original position
+  const handleCarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    // Prevent default and stop propagation to avoid triggering underlying elements
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Clear any existing reset timer
+    if (resetTimer) {
+      clearTimeout(resetTimer);
+      setResetTimer(null);
+    }
+
+    // Start smooth transition back to original position
+    setResetTransition({
+      isTransitioning: true,
+      targetX: ROOT_POS.x,
+      targetY: ROOT_POS.y,
+      targetRotation: ROOT_POS.rotation,
+      startX: position.x,
+      startY: position.y,
+      startRotation: position.rotation,
+      progress: 0,
+    });
+    setPhysics((prev) => ({
+      ...prev,
+      targetSpeed: 0,
+      currentSpeed: 0,
+    }));
+  };
+
+  // Combined animation frame loop for physics and UI animations
   useAnimationFrame((time, delta) => {
+    const deltaSeconds = delta / 1000;
+
+    // Handle smooth reset transition
+    if (resetTransition.isTransitioning) {
+      const transitionSpeed = 2.0; // How fast the transition happens
+      const newProgress = Math.min(
+        1,
+        resetTransition.progress + transitionSpeed * deltaSeconds
+      );
+
+      if (newProgress >= 1) {
+        // Transition complete
+        setPosition((prev) => ({
+          ...prev,
+          x: resetTransition.targetX,
+          y: resetTransition.targetY,
+          rotation: resetTransition.targetRotation,
+          speed: 0,
+        }));
+        setPhysics((prev) => ({
+          ...prev,
+          targetRotation: resetTransition.targetRotation,
+          currentRotation: resetTransition.targetRotation,
+        }));
+        setResetTransition((prev) => ({ ...prev, isTransitioning: false }));
+      } else {
+        // Interpolate position during transition
+        const easeProgress = 1 - Math.pow(1 - newProgress, 3); // Ease-out cubic
+        const newX =
+          resetTransition.startX +
+          (resetTransition.targetX - resetTransition.startX) * easeProgress;
+        const newY =
+          resetTransition.startY +
+          (resetTransition.targetY - resetTransition.startY) * easeProgress;
+        const newRotation =
+          resetTransition.startRotation +
+          (resetTransition.targetRotation - resetTransition.startRotation) *
+            easeProgress;
+
+        setPosition((prev) => ({
+          ...prev,
+          x: newX,
+          y: newY,
+          rotation: newRotation,
+          speed: 0,
+        }));
+        setPhysics((prev) => ({
+          ...prev,
+          targetRotation: newRotation,
+          currentRotation: newRotation,
+        }));
+        setResetTransition((prev) => ({ ...prev, progress: newProgress }));
+      }
+    }
+
+    // Physics update for smooth acceleration/deceleration and rotation
+    // Skip physics updates during reset transitions
+    if (!resetTransition.isTransitioning) {
+      setPhysics((prevPhysics) => {
+        // Calculate target speed based on pressed keys
+        let targetSpeed = 0;
+        if (pressedKeys.has("ArrowUp")) {
+          targetSpeed = 12; // Forward speed
+        } else if (pressedKeys.has("ArrowDown")) {
+          targetSpeed = -6; // Reverse speed (slower)
+        }
+
+        // Mark that the car has been driven if any movement keys are pressed
+        if (
+          pressedKeys.has("ArrowUp") ||
+          pressedKeys.has("ArrowDown") ||
+          pressedKeys.has("ArrowLeft") ||
+          pressedKeys.has("ArrowRight")
+        ) {
+          setHasBeenDriven(true);
+        }
+
+        // Calculate target rotation based on pressed keys
+        let targetRotation = prevPhysics.targetRotation;
+        if (pressedKeys.has("ArrowLeft")) {
+          targetRotation -= 0.05; // Turn left
+        }
+        if (pressedKeys.has("ArrowRight")) {
+          targetRotation += 0.05; // Turn right
+        }
+
+        // Smooth acceleration/deceleration
+        const acceleration = 0.5; // How fast to reach target speed
+
+        let newSpeed = prevPhysics.currentSpeed;
+        if (Math.abs(targetSpeed) > 0) {
+          // Accelerating
+          const speedDiff = targetSpeed - prevPhysics.currentSpeed;
+          newSpeed += speedDiff * acceleration * deltaSeconds;
+        } else {
+          // Decelerating (much slower)
+          newSpeed *= Math.pow(0.95, deltaSeconds * 20); // Exponential decay
+          if (Math.abs(newSpeed) < 0.01) {
+            newSpeed = 0;
+          }
+        }
+
+        // Smooth rotation
+        const rotationSpeed = 2.0; // How fast to reach target rotation
+        const rotationDiff = targetRotation - prevPhysics.currentRotation;
+        const newRotation =
+          prevPhysics.currentRotation +
+          rotationDiff * rotationSpeed * deltaSeconds;
+
+        // Update position with new physics values
+        setPosition((prevPos) => ({
+          ...prevPos,
+          speed: newSpeed,
+          rotation: newRotation,
+        }));
+
+        return {
+          targetSpeed,
+          currentSpeed: newSpeed,
+          targetRotation,
+          currentRotation: newRotation,
+        };
+      });
+    }
+
+    // Spring-mass-damper animation for UI elements
     const isAnimating =
       scaleAnimation.isAnimating || opacityAnimation.isAnimating;
     if (!isAnimating) return;
 
     // Update scale animation
     setScaleAnimation((prev) => {
-      const springConstant = 200; // Controls spring stiffness
-      const damping = 50; // Controls damping (0 = no damping, 1 = critical damping)
+      const springConstant = 300; // Controls spring stiffness
+      const damping = 20;
       const mass = 1; // Mass of the object
 
       // Calculate spring force (F = -kx)
@@ -317,9 +536,9 @@ export const Car = (props: {
 
     // Update opacity animation
     setOpacityAnimation((prev) => {
-      const springConstant = 8; // Slightly slower than scale for smoother fade
-      const damping = 2.5;
-      const mass = 0.1;
+      const springConstant = 300; // Match scale animation speed
+      const damping = 20;
+      const mass = 1;
 
       // Calculate spring force (F = -kx)
       const displacement = prev.target - prev.opacity;
@@ -702,6 +921,29 @@ export const Car = (props: {
 
   return (
     <>
+      {/* Global mouse tracking overlay */}
+      <div
+        className="absolute w-full h-full top-0 left-0 z-50"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          cursor: isMouseOverCar ? "pointer" : "default",
+          pointerEvents: "none",
+        }}
+      />
+      {/* Clickable area that follows the car */}
+      <div
+        className="absolute z-40"
+        onClick={handleCarClick}
+        style={{
+          left: position.x - WIDTH / 2,
+          top: position.y - WIDTH / ASPECT_RATIO / 2,
+          width: WIDTH,
+          height: WIDTH / ASPECT_RATIO,
+          pointerEvents: "auto",
+          cursor: "pointer",
+        }}
+      />
       <canvas
         className="absolute w-full h-full top-0 left-0 transition z-100 pointer-events-none"
         ref={canvasRef}
@@ -718,7 +960,13 @@ export const Car = (props: {
           pointerEvents: "none",
         }}
       >
-        <p className="font-sans text-sm text-gray-400 font-semibold uppercase z-30 absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap inline-flex items-center gap-1">
+        <p
+          className="font-sans text-sm text-gray-400 font-semibold uppercase z-30 absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap inline-flex items-center gap-1"
+          style={{
+            opacity: opacityAnimation.opacity,
+            transform: `scale(${scaleAnimation.scale})`,
+          }}
+        >
           USE ARROW KEYS TO DRIVE
         </p>
       </div>

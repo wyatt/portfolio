@@ -41,7 +41,7 @@ export default function Home() {
           {funMode ? "Activate Boring Mode" : "Activate Fun Mode"}
         </PushButton>
       )}
-      {funMode && <FunMode excludedBounds={bounds} />}
+      <FunMode excludedBounds={bounds} isVisible={funMode} />
       <Content setBounds={setBounds} />
     </div>
   );

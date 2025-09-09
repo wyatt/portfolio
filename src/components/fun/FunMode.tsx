@@ -1,7 +1,7 @@
 import { useWindowSize } from "@uidotdev/usehooks";
 import { AnimatePresence } from "motion/react";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const Earth = dynamic(() => import("./Earth").then((mod) => mod.Earth), {
   ssr: false,
@@ -32,11 +32,28 @@ const RecordSpinner = dynamic(() =>
 
 export const FunMode = ({
   excludedBounds,
+  isVisible,
 }: {
   excludedBounds: { top: number; bottom: number; left: number; right: number };
+  isVisible: boolean;
 }) => {
   const [animateStep, setAnimateStep] = useState<number>(0);
 
+  useEffect(() => {
+    const incDecStep = () => {
+      setAnimateStep((prev) => {
+        if (!isVisible) {
+          return Math.max(prev - 1, 0);
+        }
+        return Math.min(prev + 1, 6);
+      });
+    };
+    const interval = setInterval(() => {
+      incDecStep();
+    }, 150);
+
+    return () => clearInterval(interval);
+  }, [isVisible]);
   const FUN_CONTENT = [
     {
       title: "Car",
@@ -88,22 +105,21 @@ export const FunMode = ({
     },
   ];
 
-  console.log(animateStep);
-
   return (
     <div className="absolute top-0 left-0 w-full h-full">
       {FUN_CONTENT.map((content, i) => (
         <AnimatePresence key={content.title}>
           <content.component
             key={content.title}
-            shouldAnimate={animateStep >= i}
-            incrementStep={() =>
-              setAnimateStep((prev) => {
-                if (prev > i) {
-                  return prev;
-                }
-                return prev + 1;
-              })
+            shouldAnimate={animateStep > i}
+            incrementStep={
+              () => {}
+              // setAnimateStep((prev) => {
+              //   if (prev > i) {
+              //     return prev;
+              //   }
+              //   return prev + 1;
+              // })
             }
             style={{
               ...content.style,
