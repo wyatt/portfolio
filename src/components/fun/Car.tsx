@@ -406,8 +406,9 @@ export const Car = (props: {
           resetTransition.startY +
           (resetTransition.targetY - resetTransition.startY) * easeProgress;
         const newRotation =
-          resetTransition.startRotation +
-          (resetTransition.targetRotation - resetTransition.startRotation) *
+          (resetTransition.startRotation % (2 * Math.PI)) +
+          (resetTransition.targetRotation -
+            (resetTransition.startRotation % (2 * Math.PI))) *
             easeProgress;
 
         setPosition((prev) => ({
