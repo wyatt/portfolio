@@ -56,9 +56,15 @@ export const Content = (props: {
 
   return (
     <div
-      className="flex flex-col items-center w-full px-4 py-10 md:w-3xl gap-2 bg-white z-10"
+      className="flex flex-col items-center w-full px-4 pt-4 pb-16 md:w-3xl gap-2 bg-white z-10"
       ref={contentRef}
     >
+      <a
+        href="/Wyatt_Sell_Resume.pdf"
+        className="text-lg underline cursor-pointer pb-6"
+      >
+        Download Resumé (PDF)
+      </a>
       <h1 className="text-4xl">Wyatt Sell</h1>
       <button
         tabIndex={0}
@@ -213,12 +219,17 @@ export const Content = (props: {
         </ul>
       </Section>
       <Section title="SKILLS">
-        {SKILLS.map((skill, index) => (
-          <span key={skill}>
-            {index !== 0 && " • "}
-            {skill}
-          </span>
-        ))}
+        <ul className="list-disc text-lg pl-4">
+          <li>
+            <strong>Development:</strong> TypeScript (Node.js, React, Next.js),
+            Python, SQL, Java, C; REST/WebSocket APIs, microservices, data
+            pipelines, D3.js
+          </li>
+          <li>
+            <strong>Infrastructure & Tools:</strong> PostgreSQL, Redis,
+            Supabase, Docker, Git, CI/CD, Tailwind, Figma
+          </li>
+        </ul>
       </Section>
     </div>
   );
