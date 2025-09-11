@@ -32,7 +32,7 @@ export const Earth = (props: {
     globe.controls().autoRotate = true;
     globe.controls().autoRotateSpeed = 0.5;
     globe.controls().enableZoom = false;
-    globe.pointOfView({ lat: 35, lng: 0, altitude: 2.25 });
+    globe.pointOfView({ lat: 35, lng: 30, altitude: 2.25 });
   }, [globeEl.current]);
 
   const isReady = useMemo(() => {

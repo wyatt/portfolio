@@ -20,7 +20,7 @@ export default function Home() {
   const { width, height } = useWindowSize();
 
   useEffect(() => {
-    if (width && height && width > 1024 && height > 768) {
+    if (width && height && width > 1400 && height > 768) {
       setFunMode(true);
     } else {
       setFunMode(false);
@@ -28,7 +28,7 @@ export default function Home() {
   }, [width, height]);
 
   return (
-    <div className="h-full flex flex-col justify-center items-center">
+    <div className="h-full flex flex-col items-center">
       {width && height && width > 1024 && height > 768 && (
         <PushButton
           onClick={() => setFunMode(!funMode)}

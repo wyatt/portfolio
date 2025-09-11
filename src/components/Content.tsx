@@ -1,7 +1,9 @@
 import Image from "next/image";
 import { PushButton } from "./PushButton";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useWindowSize } from "@uidotdev/usehooks";
+import { motion } from "motion/react";
+import { RiArrowDownSLine, RiArrowRightSLine } from "react-icons/ri";
 
 const SKILLS = [
   "JavaScript",
@@ -54,7 +56,7 @@ export const Content = (props: {
 
   return (
     <div
-      className="flex flex-col items-center w-full px-4 py-10 md:p-0 md:w-3xl gap-2 overflow-y-scroll bg-white z-10"
+      className="flex flex-col items-center w-full px-4 py-10 md:w-3xl gap-2 bg-white z-10"
       ref={contentRef}
     >
       <h1 className="text-4xl">Wyatt Sell</h1>
@@ -75,8 +77,7 @@ export const Content = (props: {
         I'm an Electrical and Computer Engineering (ECE) student at{" "}
         <i>Cornell University</i>, with extensive experience in software
         development, both individually and in large teams. I'm{" "}
-        <i>minoring in English</i>, and I enjoy reading and learning about
-        everything!
+        <i>minoring in English</i>, enjoy reading and learning about everything
         {/* You can{" "}
         <i>
           read some of my pieces{" "}
@@ -90,6 +91,7 @@ export const Content = (props: {
         full-stack development etc. Currently studying for a Masters in
         Electrical and Computer Engineering. */}
       </p>
+      <Education />
       <Section title="PROFESSIONAL EXPERIENCE">
         <ul className="list-none text-lg">
           <Experience
@@ -97,30 +99,91 @@ export const Content = (props: {
             title="Head of Technical Development"
             company="Samaritan Scout"
             dates="May 2024 - Present"
-            description="Developed and maintained the Samaritan Scout web app, a note-taking tool for students."
+            description={
+              <ul className="list-disc p-1">
+                <li>
+                  Built ETL pipelines using LLMs to scrape, process, and ingest
+                  large-scale volunteer data; implemented WebSocket servers and
+                  job-tracking interface
+                </li>
+                <li>
+                  Developed full-stack account, search, and flagging features
+                  with Supabase, TypeScript, and React; managed infrastructure
+                  and deployments
+                </li>
+                <li>
+                  Redesigned onboarding, login, search UI (with filters), and
+                  account pages to improve UX and engagement
+                </li>
+              </ul>
+            }
           />{" "}
           <Experience
             url="https://www.mmc.vc"
             title="Technical Intern"
             company="MMC Ventures"
             dates="Jul - Aug 2025"
+            description={
+              <ul className="list-disc p-1">
+                <li>
+                  Wrote custom software to handle large scale data migrations
+                  and enrichment to better leverage client information.
+                </li>
+                <li>
+                  Automated client withdrawal workflow, saving hours of work
+                  each week.
+                </li>
+                <li>
+                  Attended investment committees, board meetings and startup
+                  pitches, taking notes and analysing financial reports.
+                </li>
+              </ul>
+            }
           />
           <Experience
             url="https://www.pocdoc.co"
             title="Technical Intern"
             company="PocDoc"
             dates="Jul - Aug 2025"
+            description={
+              <ul className="list-disc p-1">
+                <li>
+                  Developed robust computer vision software to identify
+                  manufacturing defects rapidly, in a range of lighting
+                  environments.
+                </li>
+                <li>
+                  Created sensitivity analysis models for staffing, stock levels
+                  and optimal order frequency
+                </li>
+              </ul>
+            }
           />
           <Experience
             url="https://www.remnote.com"
             title="Software Engineer"
             company="Remnote"
             dates="Jan 2022 - Jun 2023"
-            description="Developed and maintained the Remnote web app, a note-taking tool for students."
+            description={
+              <ul className="list-disc p-1">
+                <li>
+                  Shipped key features for a knowledge management platform,
+                  including PDF annotation, rich text formatting, and dark mode
+                </li>
+                <li>
+                  Collaborated with 12+ developers on feature proposals, code
+                  reviews, and team culture initiatives
+                </li>
+                <li>
+                  Improved developer experience by creating style guides, tests,
+                  and utilities; refactored major components to reduce
+                  regressions
+                </li>
+              </ul>
+            }
           />
         </ul>
       </Section>
-      <Education />
 
       <Section title="PROJECTS">
         <ul className="list-none space-y-2 text-lg">
@@ -250,27 +313,58 @@ const Experience = ({
   title: string;
   company: string;
   dates: string;
-  description?: string;
+  description?: React.ReactNode;
 }) => {
+  const [showDescription, setShowDescription] = useState<boolean>(false);
+
   return (
-    <li className="flex justify-between md:items-center items-start flex-col md:flex-row">
-      <div className="flex items-center gap-2">
-        <div className="w-5 h-5 relative flex-shrink-0">
-          <Image
-            src={url + "/favicon.ico"}
-            alt={company}
-            fill
-            style={{ objectFit: "cover", aspectRatio: "1 / 1" }}
-          />
+    <li
+      className="flex  flex-col hover:bg-gray-200 transition cursor-pointer px-1"
+      onClick={() => setShowDescription(!showDescription)}
+    >
+      <div className="flex flex-col md:flex-row items-start w-full justify-between md:items-center">
+        <div className="flex items-center gap-2 relative">
+          <motion.p
+            className="text-xl absolute -left-6"
+            animate={{
+              rotate: showDescription ? 90 : 0,
+            }}
+            transition={{
+              duration: 0.3,
+              ease: "easeOut",
+            }}
+          >
+            <RiArrowRightSLine />
+          </motion.p>
+          <div className="w-5 h-5 relative flex-shrink-0">
+            <Image
+              src={url + "/favicon.ico"}
+              alt={company}
+              fill
+              style={{ objectFit: "cover", aspectRatio: "1 / 1" }}
+            />
+          </div>
+          <p>
+            <strong>{title}</strong> at{" "}
+            <a href={url} className="underline whitespace-nowrap">
+              {company}
+            </a>
+          </p>
         </div>
-        <p>
-          <strong>{title}</strong> at{" "}
-          <a href={url} className="underline whitespace-nowrap">
-            {company}
-          </a>
-        </p>
+        <span className="italic">{dates}</span>
       </div>
-      <span className="italic">{dates}</span>
+      <motion.div
+        className="pl-6 leading-snug overflow-hidden h-0"
+        animate={{
+          height: showDescription ? "auto" : 0,
+        }}
+        transition={{
+          duration: 0.3,
+          ease: "easeInOut",
+        }}
+      >
+        {description}
+      </motion.div>
     </li>
   );
 };
