@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Route Following Demo</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      body {
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        box-sizing: border-box;
+      }
+      #map {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+  </head>
+  <body>
+    <div id="map"></div>
+    <button id="download-button">Download Route</button>
+    <script>
+      const locationHistory = [];
+      const map = L.map("map", { maxNativeZoom: 18, maxZoom: 25 }).setView(
+        [42.45, -76.48],
+        13
+      );
+
+      const locationLayer = L.layerGroup().addTo(map);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxNativeZoom: 25,
+        maxZoom: 25,
+      }).addTo(map);
+      // Follow current location of user
+      navigator.geolocation.watchPosition(function (position) {
+        const location = {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          timestamp: position.timestamp,
+        };
+        console.log(locationHistory);
+        locationHistory.push(location);
+        map.setView([location.lat, location.lng], 13);
+
+        locationLayer.clearLayers();
+
+        L.circle([location.lat, location.lng], {
+          radius: 5,
+          fillOpacity: 1,
+        }).addTo(locationLayer);
+
+        for (let i = 0; i < locationHistory.length - 1; i++) {
+          const loc1 = locationHistory[i];
+          const loc2 = locationHistory[i + 1];
+          L.polyline([
+            [loc1.lat, loc1.lng],
+            [loc2.lat, loc2.lng],
+          ]).addTo(locationLayer);
+        }
+      });
+
+      document
+        .getElementById("download-button")
+        .addEventListener("click", () => {
+          downloadRoute(locationHistory);
+        });
+
+      function downloadRoute(data) {
+        const blob = new Blob([JSON.stringify(data)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "route.json";
+        a.click();
+      }
+    </script>
+  </body>
+</html>
