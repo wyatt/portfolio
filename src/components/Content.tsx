@@ -194,9 +194,16 @@ export const Content = (props: {
       <Section title="PROJECTS">
         <ul className="list-none space-y-2 text-lg">
           <Project
+            url="https://ece4760.github.io/Projects/Fall2025/wss58/report.html"
+            title="WiFi Bike Computer"
+            dates="Sep 2025 - Dec 2025"
+            description="A RPi Pico W powered bike computer which displays my location on a map using WiFi signals to determine position using a custom algorithm."
+            icon={<span className="text-xl">🚲</span>}
+          />
+          <Project
             url="https://maxims.app"
             title="Maxims"
-            dates="May 2024 - Present"
+            dates="May 2025 - Aug 2025"
             description="A full-stack web app that visualizes knowledge connections by converting text and images into AI embeddings and projecting them onto interactive 2D maps."
             icon={
               <div className="w-5 h-5 relative flex-shrink-0">
