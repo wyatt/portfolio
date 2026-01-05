@@ -299,7 +299,7 @@ const Education = () => {
             </div>
             <span className="ml-7 leading-none italic">Aug 2023 - Present</span>
           </div>
-          <span className="ml-7 md:ml-0 mt-1 md:mt-0">GPA: 4.03</span>
+          <span className="ml-7 md:ml-0 mt-1 md:mt-0">GPA: 4.01</span>
         </li>
       </ul>
     </Section>
