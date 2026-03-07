@@ -11,6 +11,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  trailingSlash: true,
+  rewrites: async () => {
+    return [
+      {
+        source: "/experiments/:path*",
+        destination: "/experiments/:path*/index.html",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
