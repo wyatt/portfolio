@@ -20,7 +20,7 @@ export default function Home() {
   const { width, height } = useWindowSize();
 
   useEffect(() => {
-    if (width && height && width > 1400 && height > 768) {
+    if (width && height && width > 1400 && height > 700) {
       setFunMode(true);
     } else {
       setFunMode(false);
@@ -29,7 +29,7 @@ export default function Home() {
 
   return (
     <div className="h-full flex flex-col items-center">
-      {width && height && width > 1024 && height > 768 && (
+      {width && height && width > 1400 && height > 700 && (
         <PushButton
           onClick={() => setFunMode(!funMode)}
           colors={{
@@ -43,6 +43,7 @@ export default function Home() {
       )}
       <FunMode excludedBounds={bounds} isVisible={funMode} />
       <Content setBounds={setBounds} />
+      {/* <p>∗∗∗</p> */}
     </div>
   );
 }

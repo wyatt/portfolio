@@ -61,7 +61,7 @@ export const Content = (props: {
     >
       <a
         href="/Wyatt_Sell_Resume.pdf"
-        className="text-lg underline cursor-pointer pb-6"
+        className="text-lg underline cursor-pointer pb-6 text-gray-400"
       >
         Download Resumé (PDF)
       </a>
@@ -73,7 +73,7 @@ export const Content = (props: {
           window.open(
             "mailto:wyattsetonsell" + "@" + "gmail.com",
             "_blank",
-            "noopener,noreferrer"
+            "noopener,noreferrer",
           );
         }}
       >
@@ -84,24 +84,40 @@ export const Content = (props: {
         <i>Cornell University</i>, with extensive experience in software
         development, both individually and in large teams. I'm{" "}
         <i>minoring in English</i>, enjoy reading and learning about everything
-        {/* You can{" "}
-        <i>
-          read some of my pieces{" "}
-          <a href="https://wyattsell.com/blog" className="underline">
-            here
-          </a>
-        </i> */}
-        {/* I'm a Computer Engineer with 8+ years of experience in software
-        development, both individually and in large teams. Proficient in most
-        stages of product creation, including UI design, testing, deployment,
-        full-stack development etc. Currently studying for a Masters in
-        Electrical and Computer Engineering. */}
       </p>
+      <div className="flex gap-2 items-center">
+        <a
+          href="https://github.com/wyatt"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-lg underline cursor-pointer"
+        >
+          GitHub
+        </a>
+        <p>⋅</p>
+        <a
+          href="https://www.linkedin.com/in/wyattsell/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-lg underline cursor-pointer"
+        >
+          LinkedIn
+        </a>
+      </div>
       <Education />
       <Section title="PROFESSIONAL EXPERIENCE">
         <ul className="list-none text-lg">
           <Experience
+            url="https://www.kisotechnology.com"
+            imgUrl="/imgs/kiso.png"
+            title="Member of Technical Staff Intern"
+            company="Kiso Technology"
+            dates="June 2026 - Present"
+            description={"Just getting started..."}
+          />
+          <Experience
             url="https://www.samaritanscout.org"
+            imgUrl="/imgs/scout.png"
             title="Head of Technical Development"
             company="Samaritan Scout"
             dates="May 2024 - Present"
@@ -126,6 +142,7 @@ export const Content = (props: {
           />{" "}
           <Experience
             url="https://www.mmc.vc"
+            imgUrl="/imgs/mmc.png"
             title="Technical Intern"
             company="MMC Ventures"
             dates="Jul - Aug 2025"
@@ -148,6 +165,7 @@ export const Content = (props: {
           />
           <Experience
             url="https://www.pocdoc.co"
+            imgUrl="/imgs/pocdoc.png"
             title="Technical Intern"
             company="PocDoc"
             dates="Jul - Aug 2025"
@@ -167,6 +185,7 @@ export const Content = (props: {
           />
           <Experience
             url="https://www.remnote.com"
+            imgUrl="/imgs/remnote.svg"
             title="Software Engineer"
             company="Remnote"
             dates="Jan 2022 - Jun 2023"
@@ -282,7 +301,7 @@ const Education = () => {
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 relative flex-shrink-0">
                 <Image
-                  src={"https://cornell.edu/favicon.ico"}
+                  src={"https://cornell.edu/favicon.svg"}
                   alt={"Cornell University"}
                   fill
                   style={{ objectFit: "cover", aspectRatio: "1 / 1" }}
@@ -322,18 +341,28 @@ const Section = ({
 };
 const Experience = ({
   url,
+  imgUrl,
   title,
   company,
   dates,
   description,
 }: {
   url: string;
+  imgUrl?: string;
   title: string;
   company: string;
   dates: string;
   description?: React.ReactNode;
 }) => {
   const [showDescription, setShowDescription] = useState<boolean>(false);
+
+  const domain = (() => {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return url.replace(/(^\w+:|^)\/\//, "").replace(/\/.*$/, "");
+    }
+  })();
 
   return (
     <li
@@ -356,10 +385,14 @@ const Experience = ({
           </motion.p>
           <div className="w-5 h-5 relative flex-shrink-0">
             <Image
-              src={url + "/favicon.ico"}
+              src={
+                imgUrl ||
+                `https://img.logo.dev/${domain}?token=pk_djTjNvb9R1mRMEGZlAwQ6A`
+              }
               alt={company}
               fill
               style={{ objectFit: "cover", aspectRatio: "1 / 1" }}
+              className="rounded-full"
             />
           </div>
           <p>
