@@ -132,6 +132,16 @@ export const Car = (props: {
     }
   }, [props.shouldAnimate]);
 
+  // Track full document height so the car can roam the entire page
+  const [documentHeight, setDocumentHeight] = useState(0);
+  useEffect(() => {
+    const update = () => setDocumentHeight(document.documentElement.scrollHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(document.documentElement);
+    return () => observer.disconnect();
+  }, []);
+
   // Calculate ROOT_POS using useMemo to ensure it's recalculated when dependencies change
   const ROOT_POS = useMemo(
     () => ({
@@ -405,11 +415,10 @@ export const Car = (props: {
         const newY =
           resetTransition.startY +
           (resetTransition.targetY - resetTransition.startY) * easeProgress;
-        const newRotation =
-          (resetTransition.startRotation % (2 * Math.PI)) +
-          (resetTransition.targetRotation -
-            (resetTransition.startRotation % (2 * Math.PI))) *
-            easeProgress;
+        const TWO_PI = 2 * Math.PI;
+        const rawDiff = resetTransition.targetRotation - resetTransition.startRotation;
+        const shortestDiff = ((rawDiff % TWO_PI) + TWO_PI + Math.PI) % TWO_PI - Math.PI;
+        const newRotation = resetTransition.startRotation + shortestDiff * easeProgress;
 
         setPosition((prev) => ({
           ...prev,
@@ -684,25 +693,18 @@ export const Car = (props: {
 
   // Handle canvas sizing and resize
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !documentHeight) return;
 
     const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-
-    // Set canvas size to match display size
-    canvas.width = rect.width;
-    canvas.height = rect.height;
-
-    // Set device pixel ratio for crisp rendering
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
+    canvas.width = document.documentElement.scrollWidth * dpr;
+    canvas.height = documentHeight * dpr;
 
     const ctx = canvas.getContext("2d");
     if (ctx) {
       ctx.scale(dpr, dpr);
     }
-  }, [windowWidth, windowHeight]);
+  }, [windowWidth, windowHeight, documentHeight]);
 
   // Draw the car
   useEffect(() => {
@@ -946,7 +948,8 @@ export const Car = (props: {
         }}
       />
       <canvas
-        className="absolute w-full h-full top-0 left-0 transition z-100 pointer-events-none"
+        className="absolute w-full top-0 left-0 z-100 pointer-events-none"
+        style={{ height: documentHeight || "100%" }}
         ref={canvasRef}
       ></canvas>
       <div

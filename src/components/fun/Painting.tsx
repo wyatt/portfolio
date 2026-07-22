@@ -303,6 +303,7 @@ export const Painting = (props: {
   incrementStep: () => void;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [documentHeight, setDocumentHeight] = useState(0);
   const [isPainting, setIsPainting] = useState(false);
   const [brush, setBrush] = useState<Brush | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -318,19 +319,27 @@ export const Painting = (props: {
     pixelHeight: number;
   } | null>(null);
 
+  // Track full document height so painting spans the entire page
+  useEffect(() => {
+    const update = () => setDocumentHeight(document.documentElement.scrollHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(document.documentElement);
+    return () => observer.disconnect();
+  }, []);
+
   // Initialize brush and canvas
   useEffect(() => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current || !documentHeight) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size
+    // Set canvas size to full document dimensions
     const resizeCanvas = () => {
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+      canvas.width = document.documentElement.scrollWidth;
+      canvas.height = document.documentElement.scrollHeight;
     };
 
     resizeCanvas();
@@ -347,7 +356,7 @@ export const Painting = (props: {
 
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, [canvasRef]);
+  }, [canvasRef, documentHeight]);
 
   // Animation loop
   useEffect(() => {
@@ -629,7 +638,7 @@ export const Painting = (props: {
 
       <canvas
         ref={canvasRef}
-        className={clsx("absolute top-0 left-0 w-full h-full z-20 opacity-70")}
+        className={clsx("absolute top-0 left-0 w-full z-20 opacity-70")}
         onMouseDown={handlePointerStart}
         onMouseMove={handlePointerMove}
         onMouseLeave={handlePointerEnd}
@@ -638,6 +647,7 @@ export const Painting = (props: {
         onTouchMove={handlePointerMove}
         onTouchEnd={handlePointerEnd}
         style={{
+          height: documentHeight || "100%",
           touchAction: "none",
           pointerEvents: isActivated ? "auto" : "none",
           cursor: cursorURI(color),
