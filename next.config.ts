@@ -18,6 +18,14 @@ const nextConfig: NextConfig = {
         source: "/experiments/:path*",
         destination: "/experiments/:path*/index.html",
       },
+      {
+        source: "/wordgraph",
+        destination: "/experiments/word-graph/index.html",
+      },
+      {
+        source: "/wordgraph/:path*",
+        destination: "/experiments/word-graph/:path*",
+      },
     ];
   },
 };

@@ -20,6 +20,9 @@
     "react-dom": "19.1.0",
     "react-globe.gl": "^2.35.0",
     "react-icons": "^5.5.0",
+    "react-markdown": "^10.1.0",
+    "rehype-raw": "^7.0.0",
+    "remark-gfm": "^4.0.1",
     "three": "^0.180.0",
     "use-last-fm": "^0.6.1"
   },
