@@ -113,7 +113,26 @@ export const Content = (props: {
             title="Member of Technical Staff Intern"
             company="Kiso Technology"
             dates="June 2026 - Present"
-            description={"Just getting started..."}
+            description={
+              <ul className="list-disc p-1">
+                <li>
+                  Researched, implemented, and tuned a Temporal Fusion
+                  Transformer from the original paper; ensembling its forecasts
+                  with existing models yielded $15M in projected client savings
+                  over the next-best approach.
+                </li>
+                <li>
+                  Improved demand forecasts across 10K+ SKUs and 2M+ observations
+                  by combining deep learning and LightGBM residual forecasts with
+                  tailored ensembles for warm- and cold-start products.
+                </li>
+                <li>
+                  Built a modular time-series forecasting framework supporting
+                  cross-validation, hyperparameter optimization, configurable
+                  aggregation strategies, and custom error metrics.
+                </li>
+              </ul>
+            }
           />
           <Experience
             url="https://www.samaritanscout.org"
