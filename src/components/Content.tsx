@@ -112,7 +112,7 @@ export const Content = (props: {
             imgUrl="/imgs/kiso.png"
             title="Member of Technical Staff Intern"
             company="Kiso Technology"
-            dates="June 2026 - Present"
+            dates="June - August 2026"
             description={
               <ul className="list-disc p-1">
                 <li>
@@ -139,7 +139,7 @@ export const Content = (props: {
             imgUrl="/imgs/scout.png"
             title="Head of Technical Development"
             company="Samaritan Scout"
-            dates="May 2024 - Present"
+            dates="May 2024 - August 2025"
             description={
               <ul className="list-disc p-1">
                 <li>
@@ -164,7 +164,7 @@ export const Content = (props: {
             imgUrl="/imgs/mmc.png"
             title="Technical Intern"
             company="MMC Ventures"
-            dates="Jul - Aug 2025"
+            dates="Jul 2025"
             description={
               <ul className="list-disc p-1">
                 <li>
@@ -187,7 +187,7 @@ export const Content = (props: {
             imgUrl="/imgs/pocdoc.png"
             title="Technical Intern"
             company="PocDoc"
-            dates="Jul - Aug 2025"
+            dates="Jul 2025"
             description={
               <ul className="list-disc p-1">
                 <li>
