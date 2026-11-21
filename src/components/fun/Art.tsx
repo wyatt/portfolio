@@ -9,24 +9,40 @@ import {
   useState,
 } from "react";
 import { motion } from "motion/react";
+import { dropShadow } from "./shadows";
 
 export const Art = (props: {
   style: React.CSSProperties;
   shouldAnimate: boolean;
   incrementStep: () => void;
+  onReady?: () => void;
 }) => {
-  const [art, setArt] = useState<
-    { title: string; artist: string; image_url: string; url: string }[]
-  >([]);
+  const art = ARTWORK;
   const [artIdx, setCurrentArtIdx] = useState<number>(0);
   const [prevArtIdx, setPrevArtIdx] = useState<number>(0);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
+  const [isArtDecoded, setIsArtDecoded] = useState(false);
 
+  // Decode every painting up front so neither the zoom-in nor a crossfade
+  // has to decode a large image mid-animation
   useEffect(() => {
-    getArtwork().then((data) => {
-      setArt(data);
-    });
-  }, []);
+    let cancelled = false;
+    Promise.all(
+      art.map((artwork) => {
+        const img = new Image();
+        img.src = artwork.image_url;
+        return img.decode().catch(() => {});
+      })
+    ).then(() => !cancelled && setIsArtDecoded(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [art]);
+
+  const { onReady } = props;
+  useEffect(() => {
+    if (isLoaded && isArtDecoded) onReady?.();
+  }, [isLoaded, isArtDecoded, onReady]);
 
   useEffect(() => {
     const intervalCurrent = setInterval(() => {
@@ -86,7 +102,7 @@ export const Art = (props: {
           setIsLoaded(true);
         }}
         style={{
-          filter: "drop-shadow(0 0 7px rgba(0, 0, 0, 0.5))",
+          filter: dropShadow("mid"),
         }}
       />
       {art.length > 0 && (
@@ -133,35 +149,43 @@ export const Art = (props: {
   );
 };
 
-const ARTWORK_IDS = [
-  27992, // La Grande Jatte
-  64818, // End of Summer
-  111628, // Nighthawks
-  20684, // Paris Street; Rainy Day
-];
+const CONSTABLE = "John Constable";
 
-export const getArtwork = async (): Promise<
-  { title: string; artist: string; image_url: string; url: string }[]
-> => {
-  const artworkData = await fetch(
-    `https://api.artic.edu/api/v1/artworks?ids=${ARTWORK_IDS.join(",")}&fields=id,title,artist_title,image_id`
-  );
-  const data = await artworkData.json().then((data) => {
-    return data.data.map(
-      (artwork: {
-        title: string;
-        artist_title: string;
-        image_id: string;
-        id: string;
-      }) => {
-        return {
-          title: artwork.title,
-          artist: artwork.artist_title,
-          image_url: `https://www.artic.edu/iiif/2/${artwork.image_id}/full/843,/0/default.jpg`,
-          url: `https://www.artic.edu/artworks/${artwork.id}`,
-        };
-      }
-    );
-  });
-  return data;
-};
+// Public domain images from the Art Institute of Chicago and The Met (CC0)
+const ARTWORK = [
+  {
+    title: "Stoke-by-Nayland",
+    image_url: "/fun/art/stoke-by-nayland-1836.jpg",
+    url: "https://www.artic.edu/artworks/4758",
+  },
+  {
+    title: "Salisbury Cathedral from the Bishop's Grounds",
+    image_url: "/fun/art/salisbury-cathedral.jpg",
+    url: "https://www.metmuseum.org/art/collection/search/435922",
+  },
+  {
+    title: "Hampstead, Stormy Sky",
+    image_url: "/fun/art/hampstead-stormy-sky.jpg",
+    url: "https://www.artic.edu/artworks/47582",
+  },
+  {
+    title: "Landscape (The Lock)",
+    image_url: "/fun/art/the-lock.jpg",
+    url: "https://www.artic.edu/artworks/879",
+  },
+  {
+    title: "Cloud Study",
+    image_url: "/fun/art/cloud-study.jpg",
+    url: "https://www.metmuseum.org/art/collection/search/727706",
+  },
+  {
+    title: "Landscape with Cottages",
+    image_url: "/fun/art/landscape-with-cottages.jpg",
+    url: "https://www.artic.edu/artworks/49651",
+  },
+  {
+    title: "Stoke-by-Nayland",
+    image_url: "/fun/art/stoke-by-nayland-1810.jpg",
+    url: "https://www.metmuseum.org/art/collection/search/435923",
+  },
+].map((artwork) => ({ ...artwork, artist: CONSTABLE }));

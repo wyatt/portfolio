@@ -1,35 +1,65 @@
 import Image from "next/image";
+import clsx from "clsx";
 import { PushButton } from "./PushButton";
 import { useEffect, useRef, useState } from "react";
 import { useWindowSize } from "@uidotdev/usehooks";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { RiArrowDownSLine, RiArrowRightSLine } from "react-icons/ri";
 
-const SKILLS = [
-  "JavaScript",
-  "TypeScript",
-  "React",
-  "Next.js",
-  "Node.js",
-  "Express",
-  "D3.js",
-  "Websockets",
-  "Python",
-  "Java",
-  "SQL",
-  "PostgreSQL",
-  "MongoDB",
-  "Redis",
-  "Supabase",
-  "Git",
-  "Docker",
-  "CI/CD",
-  "HTML",
-  "CSS",
-  "Tailwind",
-  "Figma",
-  "UI Design",
-  "Excel",
+// Newest first; only the first few are shown
+const VISIBLE_PROJECTS = 3;
+const PROJECTS = [
+  {
+    url: "https://intercede.wyattsell.com",
+    title: "Intercede",
+    dates: "Jul 2026 - Present",
+    description:
+      "A Chrome extension that sets daily limits on distracting sites. When time runs out, a pixel-art patron saint walks onto the page and sweeps it away.",
+    icon: (
+      <div className="w-5 h-5 relative flex-shrink-0">
+        <Image
+          src="/imgs/intercede.png"
+          alt="Intercede"
+          fill
+          style={{ objectFit: "cover", aspectRatio: "1 / 1" }}
+          className="rounded"
+        />
+      </div>
+    ),
+  },
+  {
+    url: "https://ece4760.github.io/Projects/Fall2025/wss58/report.html",
+    title: "WiFi Bike Computer",
+    dates: "Sep 2025 - Dec 2025",
+    description:
+      "A RPi Pico W powered bike computer which displays my location on a map using WiFi signals to determine position using a custom algorithm.",
+    icon: <span className="text-xl">🚲</span>,
+  },
+  {
+    url: "https://maxims.app",
+    title: "Maxims",
+    dates: "May 2025 - Aug 2025",
+    description:
+      "A full-stack web app that visualizes knowledge connections by converting text and images into AI embeddings and projecting them onto interactive 2D maps.",
+    icon: (
+      <div className="w-5 h-5 relative flex-shrink-0">
+        <Image
+          src="https://maxims.app/favicon.ico"
+          alt="Maxims"
+          fill
+          style={{ objectFit: "cover", aspectRatio: "1 / 1" }}
+        />
+      </div>
+    ),
+  },
+  {
+    url: "https://revisio.app",
+    title: "Revisio",
+    dates: "Apr 2021 - May 2023",
+    description:
+      "A full-stack web app that optimizes exam preparation through spaced repetition and collaborative learning.",
+    icon: <span className="text-xl">🗂️</span>,
+  },
 ];
 
 export const Content = (props: {
@@ -42,6 +72,7 @@ export const Content = (props: {
 }) => {
   const size = useWindowSize();
   const contentRef = useRef<HTMLDivElement>(null);
+  const [showAllProjects, setShowAllProjects] = useState(false);
 
   useEffect(() => {
     if (contentRef.current) {
@@ -56,7 +87,7 @@ export const Content = (props: {
 
   return (
     <div
-      className="flex flex-col items-center w-full px-4 pt-4 pb-16 md:w-3xl gap-2 bg-white z-10"
+      className="flex flex-col items-center w-full px-4 pt-4 pb-16 md:w-3xl gap-2 paper z-10"
       ref={contentRef}
     >
       <a
@@ -231,50 +262,46 @@ export const Content = (props: {
 
       <Section title="PROJECTS">
         <ul className="list-none space-y-2 text-lg">
-          <Project
-            url="https://ece4760.github.io/Projects/Fall2025/wss58/report.html"
-            title="WiFi Bike Computer"
-            dates="Sep 2025 - Dec 2025"
-            description="A RPi Pico W powered bike computer which displays my location on a map using WiFi signals to determine position using a custom algorithm."
-            icon={<span className="text-xl">🚲</span>}
-          />
-          <Project
-            url="https://maxims.app"
-            title="Maxims"
-            dates="May 2025 - Aug 2025"
-            description="A full-stack web app that visualizes knowledge connections by converting text and images into AI embeddings and projecting them onto interactive 2D maps."
-            icon={
-              <div className="w-5 h-5 relative flex-shrink-0">
-                <Image
-                  src="https://maxims.app/favicon.ico"
-                  alt="Maxims"
-                  fill
-                  style={{ objectFit: "cover", aspectRatio: "1 / 1" }}
+          {PROJECTS.slice(0, VISIBLE_PROJECTS).map((project) => (
+            <Project key={project.title} {...project} />
+          ))}
+        </ul>
+        <AnimatePresence initial={false}>
+          {showAllProjects && (
+            <motion.ul
+              className="list-none space-y-2 text-lg overflow-hidden"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              {PROJECTS.slice(VISIBLE_PROJECTS).map((project, i) => (
+                <Project
+                  key={project.title}
+                  {...project}
+                  // Matches the space-y-2 gap between the visible projects
+                  className={i === 0 ? "pt-2" : undefined}
                 />
-              </div>
-            }
-          />
-          <Project
-            url="https://revisio.app"
-            title="Revisio"
-            dates="Apr 2021 - May 2023"
-            description="A full-stack web app that optimizes exam preparation through spaced repetition and collaborative learning."
-            icon={<span className="text-xl">🗂️</span>}
-          />
-        </ul>
-      </Section>
-      <Section title="SKILLS">
-        <ul className="list-disc text-lg pl-4">
-          <li>
-            <strong>Development:</strong> TypeScript (Node.js, React, Next.js),
-            Python, SQL, Java, C; REST/WebSocket APIs, microservices, data
-            pipelines, D3.js
-          </li>
-          <li>
-            <strong>Infrastructure & Tools:</strong> PostgreSQL, Redis,
-            Supabase, Docker, Git, CI/CD, Tailwind, Figma
-          </li>
-        </ul>
+              ))}
+            </motion.ul>
+          )}
+        </AnimatePresence>
+        {PROJECTS.length > VISIBLE_PROJECTS && (
+          <button
+            className="mt-2 mx-auto flex w-fit items-center gap-1 text-base italic text-gray-500 hover:text-foreground transition-colors cursor-pointer"
+            onClick={() => setShowAllProjects((prev) => !prev)}
+            aria-expanded={showAllProjects}
+          >
+            <motion.span
+              className="inline-flex"
+              animate={{ rotate: showAllProjects ? 180 : 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+            >
+              <RiArrowDownSLine />
+            </motion.span>
+            {showAllProjects ? "Show less" : "Show more"}
+          </button>
+        )}
       </Section>
     </div>
   );
@@ -286,15 +313,19 @@ const Project = ({
   dates,
   description,
   icon,
+  className,
 }: {
   url: string;
   title: string;
   dates: string;
   description: string;
   icon: React.ReactNode;
+  className?: string;
 }) => {
   return (
-    <li className="flex flex-col items-start justify-between">
+    <li
+      className={clsx("flex flex-col items-start justify-between", className)}
+    >
       <div className="flex items-start gap-2 w-full justify-between">
         <div className="flex flex-row gap-2 items-center">
           {icon}
@@ -320,7 +351,8 @@ const Education = () => {
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 relative flex-shrink-0">
                 <Image
-                  src={"https://cornell.edu/favicon.svg"}
+                  // Cornell's seal, public domain via Wikimedia Commons
+                  src={"/imgs/cornell-seal.svg"}
                   alt={"Cornell University"}
                   fill
                   style={{ objectFit: "cover", aspectRatio: "1 / 1" }}
@@ -385,10 +417,12 @@ const Experience = ({
 
   return (
     <li
-      className="flex  flex-col hover:bg-gray-200 transition cursor-pointer px-1"
-      onClick={() => setShowDescription(!showDescription)}
+      className="flex  flex-col px-1"
     >
-      <div className="flex flex-col md:flex-row items-start w-full justify-between md:items-center">
+      <div
+        className="flex flex-col md:flex-row items-start -mx-2 px-2 justify-between md:items-center cursor-pointer hover:bg-black/[0.07] transition"
+        onClick={() => setShowDescription(!showDescription)}
+      >
         <div className="flex items-center gap-2 relative">
           <motion.p
             className="text-xl absolute -left-6"

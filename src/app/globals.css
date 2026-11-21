@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
+  --background: #fcf9f2;
   --foreground: #171717;
+  /* Fine paper grain: tiled, contrast-boosted greyscale noise at low opacity */
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.4' intercept='-0.7'/%3E%3CfeFuncG type='linear' slope='2.4' intercept='-0.7'/%3E%3CfeFuncB type='linear' slope='2.4' intercept='-0.7'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.2'/%3E%3C/svg%3E");
 }
 
 @theme inline {
@@ -19,15 +21,72 @@
   }
 } */
 
+/* Palatino everywhere: use the real Palatino when the device has it (macOS, iOS,
+   Windows), otherwise download TeX Gyre Pagella, a metric-compatible clone.
+   Pagella is subset to Latin and renamed per its GUST Font License
+   (public/fonts/GUST-FONT-LICENSE.txt). */
+@font-face {
+  font-family: "Palatino Web";
+  src:
+    local("Palatino"),
+    local("Palatino-Roman"),
+    local("Palatino Linotype"),
+    local("PalatinoLinotype-Roman"),
+    url("/fonts/pagella-web-regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Palatino Web";
+  src:
+    local("Palatino Italic"),
+    local("Palatino-Italic"),
+    local("Palatino Linotype Italic"),
+    local("PalatinoLinotype-Italic"),
+    url("/fonts/pagella-web-italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Palatino Web";
+  src:
+    local("Palatino Bold"),
+    local("Palatino-Bold"),
+    local("Palatino Linotype Bold"),
+    local("PalatinoLinotype-Bold"),
+    url("/fonts/pagella-web-bold.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Palatino Web";
+  src:
+    local("Palatino Bold Italic"),
+    local("Palatino-BoldItalic"),
+    local("Palatino Linotype Bold Italic"),
+    local("PalatinoLinotype-BoldItalic"),
+    url("/fonts/pagella-web-bolditalic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+}
+
 html,
 body {
   height: 100%;
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: var(--paper-grain);
   color: var(--foreground);
-  font-family: "Times New Roman", serif;
+  font-family: "Palatino Web", "Palatino", "Palatino Linotype", serif;
   overflow-x: hidden;
 }
 
@@ -122,4 +181,10 @@ body {
 .journal-prose img {
   max-width: 100%;
   height: auto;
+}
+
+/* Surfaces that sit above the page background but should still look like paper */
+.paper {
+  background-color: var(--background);
+  background-image: var(--paper-grain);
 }

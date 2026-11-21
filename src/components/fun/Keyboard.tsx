@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Keyboard.module.css";
 import clsx from "clsx";
 import { motion } from "motion/react";
+import { PianoSampler } from "./pianoSampler";
 
 const getElementByNote = (note: string) =>
   note && document.querySelector(`[data-note="${note}"]`);
@@ -81,97 +82,46 @@ export default function Keyboard(props: {
   style: React.CSSProperties;
   shouldAnimate: boolean;
   incrementStep: () => void;
+  onReady?: () => void;
 }) {
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const [activeNotes, setActiveNotes] = useState<Map<string, OscillatorNode>>(
-    new Map()
-  );
+  const pianoRef = useRef<PianoSampler | null>(null);
+  const [activeNotes, setActiveNotes] = useState<Set<string>>(new Set());
+
+  // Pure CSS, so it's ready as soon as it mounts
+  const { onReady } = props;
+  useEffect(() => {
+    onReady?.();
+  }, [onReady]);
 
   useEffect(() => {
-    audioContextRef.current = new AudioContext();
+    const piano = new PianoSampler();
+    pianoRef.current = piano;
+    // Fetch the samples once the page has settled, so the first note is instant
+    const preloadTimer = setTimeout(() => piano.preload(), 2000);
+    return () => {
+      clearTimeout(preloadTimer);
+      piano.dispose();
+    };
   }, []);
 
-  const playNote = useCallback(
-    (key: string) => {
-      const audioContext = audioContextRef.current;
+  const playNote = useCallback((key: string) => {
+    const { note, octaveOffset } = keys[key as keyof typeof keys];
+    const freq = getHz(note, (octaveOffset || 0) + 3);
+    if (!Number.isFinite(freq)) return;
 
-      if (!audioContext) {
-        return;
-      }
+    pianoRef.current?.noteOn(key, freq);
+    setActiveNotes((prev) => new Set(prev).add(key));
+  }, []);
 
-      const osc = audioContext.createOscillator();
-      const noteGainNode = audioContext.createGain();
-      noteGainNode.connect(audioContext.destination);
-
-      const zeroGain = 0.00001;
-      const maxGain = 0.5;
-      const sustainedGain = 0.001;
-
-      noteGainNode.gain.value = zeroGain;
-
-      const setAttack = () =>
-        noteGainNode.gain.exponentialRampToValueAtTime(
-          maxGain,
-          audioContext.currentTime + 0.01
-        );
-      const setDecay = () =>
-        noteGainNode.gain.exponentialRampToValueAtTime(
-          sustainedGain,
-          audioContext.currentTime + 1
-        );
-      const setRelease = () =>
-        noteGainNode.gain.exponentialRampToValueAtTime(
-          zeroGain,
-          audioContext.currentTime + 0.5
-        );
-
-      setAttack();
-      setDecay();
-      setRelease();
-
-      osc.connect(noteGainNode);
-      osc.type = "triangle";
-
-      const freq = getHz(
-        keys[key as keyof typeof keys].note,
-        (keys[key as keyof typeof keys].octaveOffset || 0) + 3
-      );
-
-      if (Number.isFinite(freq)) {
-        osc.frequency.value = freq;
-      }
-
-      osc.start();
-      setActiveNotes((prev) => {
-        const newMap = new Map(prev);
-        newMap.set(key, osc);
-        return newMap;
-      });
-    },
-    [audioContextRef]
-  );
-
-  const stopNote = useCallback(
-    (key: string) => {
-      const audioContext = audioContextRef.current;
-      if (!audioContext) {
-        return;
-      }
-
-      const osc = activeNotes.get(key);
-
-      if (osc) {
-        osc.stop();
-      }
-
-      setActiveNotes((prev) => {
-        const newMap = new Map(prev);
-        newMap.delete(key);
-        return newMap;
-      });
-    },
-    [audioContextRef, activeNotes]
-  );
+  const stopNote = useCallback((key: string) => {
+    pianoRef.current?.noteOff(key);
+    setActiveNotes((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -203,13 +153,13 @@ export default function Keyboard(props: {
       document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("keyup", handleKeyUp);
     };
-  }, [activeNotes, audioContextRef]);
+  }, [activeNotes, playNote, stopNote]);
 
   const noteStyles = useCallback(
     (className: string | string[], note: string) => {
       return clsx(className, activeNotes.has(note) && styles.pressed);
     },
-    [activeNotes]
+    [activeNotes],
   );
 
   const isReady = props.shouldAnimate;

@@ -1,14 +1,25 @@
 import * as THREE from "three";
 import Globe, { GlobeMethods } from "react-globe.gl";
-import { use, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { motion } from "motion/react";
 
-export const Earth = (props: {
+// Created once: a new material every render makes the globe rebuild its polygons
+const POLYGON_SIDE_MATERIAL = new THREE.MeshBasicMaterial({
+  color: "#ff8c1a",
+  wireframe: true,
+  wireframeLinewidth: 5,
+});
+const polygonCapColor = () => "rgba(255, 140, 26, 0.45)";
+
+export const Earth = memo(function Earth(props: {
   style: React.CSSProperties;
   shouldAnimate: boolean;
   incrementStep: () => void;
-}) => {
-  const [polygonsData, setPolygonsData] = useState<any>(null);
+  onReady?: () => void;
+}) {
+  const [polygonsData, setPolygonsData] = useState<object[] | null>(null);
+  const [isGlobeReady, setIsGlobeReady] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const globeEl = useRef<GlobeMethods | undefined>(undefined);
 
   useEffect(() => {
@@ -17,27 +28,35 @@ export const Earth = (props: {
       .then((data) => setPolygonsData(data));
   }, []);
 
+  // onGlobeReady fires once the map texture has loaded. Wait for the countries
+  // too, then a couple of frames so shaders compile and textures upload before
+  // the globe zooms in, rather than during it.
+  useEffect(() => {
+    if (!isGlobeReady || !polygonsData) return;
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => setIsReady(true));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isGlobeReady, polygonsData]);
+
+  const { onReady } = props;
+  useEffect(() => {
+    if (isReady) onReady?.();
+  }, [isReady, onReady]);
+
+  // Stop rendering while hidden; wait for the zoom-out to finish first
   useEffect(() => {
     const globe = globeEl.current;
-    if (!globe) return;
+    if (!globe || !isReady) return;
+    if (props.shouldAnimate) {
+      globe.resumeAnimation();
+      return;
+    }
+    const timer = setTimeout(() => globe.pauseAnimation(), 600);
+    return () => clearTimeout(timer);
+  }, [props.shouldAnimate, isReady]);
 
-    // Auto-rotate
-    globe.controls().autoRotate = true;
-    globe.controls().autoRotateSpeed = 0.35;
-  }, []);
-
-  useEffect(() => {
-    const globe = globeEl.current;
-    if (!globe) return;
-    globe.controls().autoRotate = true;
-    globe.controls().autoRotateSpeed = 0.5;
-    globe.controls().enableZoom = false;
-    globe.pointOfView({ lat: 35, lng: 30, altitude: 2.25 });
-  }, [globeEl.current]);
-
-  const isReady = useMemo(() => {
-    return props.shouldAnimate && globeEl.current && polygonsData;
-  }, [props.shouldAnimate, polygonsData, globeEl.current]);
+  const isShown = props.shouldAnimate && isReady;
 
   return (
     <motion.div
@@ -53,7 +72,7 @@ export const Earth = (props: {
         y: "-50%",
       }}
       animate={{
-        scale: isReady ? 1 : 0,
+        scale: isShown ? 1 : 0,
         opacity: 1,
         x: "50%",
         y: "-50%",
@@ -64,14 +83,14 @@ export const Earth = (props: {
         damping: 30,
       }}
       onAnimationComplete={() => {
-        if (isReady) {
+        if (isShown) {
           props.incrementStep();
         }
       }}
     >
       <div
         className=" w-full h-full"
-        style={{ filter: "brightness(1.3)", transform: "rotate(23.44deg)" }}
+        style={{ transform: "rotate(23.44deg)" }}
       >
         <Globe
           ref={globeEl}
@@ -81,17 +100,23 @@ export const Earth = (props: {
           atmosphereAltitude={0.2}
           width={256}
           height={256}
-          globeImageUrl="//cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg"
-          bumpImageUrl="//cdn.jsdelivr.net/npm/three-globe/example/img/earth-topology.png"
+          globeImageUrl="/fun/earth-natural.jpg"
+          onGlobeReady={() => {
+            const globe = globeEl.current;
+            if (globe) {
+              const controls = globe.controls();
+              controls.autoRotate = true;
+              controls.autoRotateSpeed = 0.5;
+              controls.enableZoom = false;
+              globe.pointOfView({ lat: 35, lng: 30, altitude: 2.25 });
+            }
+            setIsGlobeReady(true);
+          }}
           polygonsData={polygonsData || []}
-          polygonCapColor={"#00000000"}
-          polygonSideMaterial={
-            new THREE.MeshBasicMaterial({
-              color: "#ffdd47",
-              wireframe: true,
-              wireframeLinewidth: 5,
-            })
-          }
+          // Countries appear at once instead of rising over a second
+          polygonsTransitionDuration={0}
+          polygonCapColor={polygonCapColor}
+          polygonSideMaterial={POLYGON_SIDE_MATERIAL}
         />
       </div>
       <p className="font-sans text-sm text-gray-400 font-semibold uppercase z-30 absolute -bottom-3 whitespace-nowrap inline-flex items-center gap-1">
@@ -99,4 +124,4 @@ export const Earth = (props: {
       </p>
     </motion.div>
   );
-};
+});

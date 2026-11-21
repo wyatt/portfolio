@@ -1,90 +1,172 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  useMemo,
-  Dispatch,
-  SetStateAction,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useWindowSize } from "@uidotdev/usehooks";
-import { useAnimationFrame } from "motion/react";
-
-interface TrailPoint {
-  x: number;
-  y: number;
-  age: number;
-  maxAge: number;
-}
-
-interface TrailLine {
-  points: TrailPoint[];
-  maxAge: number;
-}
+import { AnimatePresence, motion, useAnimationFrame } from "motion/react";
+import { CarSounds } from "./carSounds";
+import { usePageHeight } from "./usePageHeight";
+import { CANVAS_HIGH_SHADOW } from "./shadows";
 
 const WIDTH = 110;
 const ASPECT_RATIO = 300 / 450;
+const HEIGHT = WIDTH / ASPECT_RATIO;
+
+// Driving tuning. Distances are in CSS px, times in seconds.
+const MAX_SPEED = 750;
+const MAX_REVERSE_SPEED = 260;
+const ENGINE_ACCEL = 950; // Full-throttle acceleration from a standstill
+const REVERSE_ACCEL = 600;
+const BRAKE_DECEL = 1900;
+const COAST_DRAG = 0.9; // Fraction of speed lost per second when coasting
+const ROLLING_RESISTANCE = 60;
+const MAX_YAW_RATE = 3.2; // Turn rate at full lock, rad/s
+const FULL_STEER_SPEED = 220; // Steering is weaker below this speed
+const HIGH_SPEED_STEER_LOSS = 0.4; // Steering lost at top speed, for stability
+const STEER_RESPONSE = 9; // How quickly the wheel follows the keys
+const GRIP = 9; // How strongly the tyres cancel sideways sliding
+// The handbrake is for drifting, not stopping: it unloads the rear tyres and
+// adds rotation, while the throttle keeps (reduced) drive
+const HANDBRAKE_GRIP = 2.2;
+const HANDBRAKE_DECEL = 120;
+const HANDBRAKE_YAW_BOOST = 1.7;
+const HANDBRAKE_THROTTLE = 0.5;
+const GRIP_LOSS_RATE = 40; // How fast grip drops when the handbrake goes on
+const GRIP_RECOVERY_RATE = 36; // How fast it returns, so drifts exit smoothly
+const DRIFT_RECOVERY = 0.5; // Share of sideways speed turned back into forward speed when grip returns
+const WALL_BOUNCE = 0.35; // Fraction of speed kept when bouncing off a page edge
+const MAX_STEP = 1 / 120; // Physics substep, keeps handling identical at any refresh rate
+
+// Skid marks
+const SKID_THRESHOLD = 90; // Sideways speed before the tyres leave marks
+const SKID_LIFETIME = 2500;
+const REAR_AXLE_OFFSET = 50; // Distance from the car's centre to the rear axle
+const REAR_WHEEL_OFFSET = WIDTH * 0.2;
+
+const RESET_DELAY = 5000; // Idle time before the car drives itself home
+const RESET_DURATION = 0.5;
+const FOLLOW_MARGIN = 140; // Scroll the page when the car gets this close to the viewport edge
+
+// Room around the car sprite for its blurred shadow
+const SHADOW_PAD = 24;
+
+interface CarSprites {
+  dpr: number;
+  car: HTMLCanvasElement;
+  shadow: HTMLCanvasElement;
+}
+
+// Pre-render the car and its blurred shadow once. Blurring a canvas shadow
+// every frame is slow, and the zoom-in redraws the car every frame.
+const buildCarSprites = (img: HTMLImageElement, dpr: number): CarSprites => {
+  const makeCanvas = (width: number, height: number) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.ceil(width * dpr);
+    canvas.height = Math.ceil(height * dpr);
+    const ctx = canvas.getContext("2d")!;
+    ctx.scale(dpr, dpr);
+    return { canvas, ctx };
+  };
+
+  const car = makeCanvas(WIDTH, HEIGHT);
+  car.ctx.drawImage(img, 0, 0, WIDTH, HEIGHT);
+
+  // Draw the car far off the canvas so only its shadow lands on it. Shadow
+  // settings are in device pixels, matching how the car's shadow always looked.
+  const shadow = makeCanvas(WIDTH + SHADOW_PAD * 2, HEIGHT + SHADOW_PAD * 2);
+  const offscreen = 10000;
+  shadow.ctx.shadowColor = CANVAS_HIGH_SHADOW.color;
+  shadow.ctx.shadowBlur = CANVAS_HIGH_SHADOW.blur;
+  shadow.ctx.shadowOffsetX = offscreen * dpr;
+  shadow.ctx.drawImage(img, SHADOW_PAD - offscreen, SHADOW_PAD, WIDTH, HEIGHT);
+
+  return { dpr, car: car.canvas, shadow: shadow.canvas };
+};
+
+interface CarState {
+  x: number;
+  y: number;
+  heading: number; // 0 points up the page
+  vx: number;
+  vy: number;
+  steer: number; // -1 (full left) to 1 (full right)
+  grip: number;
+}
+
+interface SkidPoint {
+  x: number;
+  y: number;
+  time: number;
+  intensity: number;
+}
+
+interface Spring {
+  value: number;
+  velocity: number;
+  target: number;
+}
+
+const stepSpring = (spring: Spring, dt: number) => {
+  const stiffness = 300;
+  const damping = 20;
+  const acceleration =
+    stiffness * (spring.target - spring.value) - damping * spring.velocity;
+  spring.velocity += acceleration * dt;
+  spring.value += spring.velocity * dt;
+  return (
+    Math.abs(spring.target - spring.value) > 0.001 ||
+    Math.abs(spring.velocity) > 0.001
+  );
+};
+
+const approach = (value: number, target: number, amount: number) =>
+  value < target
+    ? Math.min(target, value + amount)
+    : Math.max(target, value - amount);
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.min(max, Math.max(min, value));
 
 export const Car = (props: {
   style: React.CSSProperties;
   shouldAnimate: boolean;
   incrementStep: () => void;
+  onReady?: () => void;
 }) => {
   const { width: windowWidth, height: windowHeight } = useWindowSize();
-  const audioRef = useRef<HTMLAudioElement>(null);
 
-  const [position, setPosition] = useState<{
-    x: number;
-    y: number;
-    rotation: number;
-    speed: number;
-  }>({
-    x: 0, // Temporary initial value
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const hitboxRef = useRef<HTMLDivElement>(null);
+  const labelRef = useRef<HTMLDivElement>(null);
+  // The drift and horn hints appear once someone starts driving
+  const [showExtraControls, setShowExtraControls] = useState(false);
+  const hasShownExtraControls = useRef(false);
+
+  // Everything the animation loop touches lives in refs, so driving never
+  // re-renders React
+  const car = useRef<CarState>({
+    x: 0,
     y: 0,
-    rotation: 0,
-    speed: 0,
+    heading: 0,
+    vx: 0,
+    vy: 0,
+    steer: 0,
+    grip: GRIP,
   });
-
-  // Track which keys are currently pressed
-  const [pressedKeys, setPressedKeys] = useState<Set<string>>(new Set());
-
-  // Physics state for smooth acceleration/deceleration
-  const [physics, setPhysics] = useState({
-    targetSpeed: 0,
-    currentSpeed: 0,
-    targetRotation: 0,
-    currentRotation: 0,
+  const pressedKeys = useRef<Set<string>>(new Set());
+  const skids = useRef<{ left: SkidPoint[][]; right: SkidPoint[][] }>({
+    left: [],
+    right: [],
   });
-
-  // Smooth transition state for reset
-  const [resetTransition, setResetTransition] = useState({
-    isTransitioning: false,
-    targetX: 0,
-    targetY: 0,
-    targetRotation: 0,
-    startX: 0,
-    startY: 0,
-    startRotation: 0,
-    progress: 0,
-  });
-
-  // Track if mouse is over the car for cursor styling
-  const [isMouseOverCar, setIsMouseOverCar] = useState(false);
-
-  // Spring-mass-damper animation state
-  const [scaleAnimation, setScaleAnimation] = useState({
-    scale: 0,
-    velocity: 0,
-    target: 0,
-    isAnimating: false,
-  });
-
-  // Opacity animation state
-  const [opacityAnimation, setOpacityAnimation] = useState({
-    opacity: 0,
-    velocity: 0,
-    target: 0,
-    isAnimating: false,
-  });
+  const wasSkidding = useRef(false);
+  const hasBeenDriven = useRef(false);
+  const idleTime = useRef(0);
+  const reset = useRef<{
+    from: { x: number; y: number; heading: number };
+    progress: number;
+  } | null>(null);
+  const scaleSpring = useRef<Spring>({ value: 0, velocity: 0, target: 0 });
+  const opacitySpring = useRef<Spring>({ value: 0, velocity: 0, target: 0 });
+  const hasIncrementedStep = useRef(false);
+  const needsDraw = useRef(true);
+  const sounds = useRef<CarSounds | null>(null);
 
   // Preload the car image
   const carImage = useMemo(() => {
@@ -105,42 +187,34 @@ export const Car = (props: {
     }
   }, [carImage]);
 
-  useEffect(() => {
-    if (scaleAnimation.scale > 0.95 && opacityAnimation.opacity > 0.95) {
-      props.incrementStep();
-    }
-  }, [scaleAnimation.scale, opacityAnimation.opacity, props.incrementStep]);
+  const sprites = useRef<CarSprites | null>(null);
+  // The area the car was last drawn in, so only that needs clearing
+  const lastCarRect = useRef<{ x: number; y: number; size: number } | null>(
+    null,
+  );
+  const hadSkidMarks = useRef(false);
 
-  // Handle animation based on shouldAnimate prop changes only
   useEffect(() => {
-    if (props.shouldAnimate) {
-      // Animate to visible state (scale and opacity to 1)
-      setScaleAnimation((prev) => ({ ...prev, target: 1, isAnimating: true }));
-      setOpacityAnimation((prev) => ({
-        ...prev,
-        target: 1,
-        isAnimating: true,
-      }));
-    } else {
-      // Animate to hidden state (scale and opacity to 0)
-      setScaleAnimation((prev) => ({ ...prev, target: 0, isAnimating: true }));
-      setOpacityAnimation((prev) => ({
-        ...prev,
-        target: 0,
-        isAnimating: true,
-      }));
+    if (imageLoaded) {
+      sprites.current = buildCarSprites(carImage, window.devicePixelRatio || 1);
     }
+    needsDraw.current = true;
+  }, [imageLoaded, carImage]);
+
+  const { onReady } = props;
+  useEffect(() => {
+    if (imageLoaded) onReady?.();
+  }, [imageLoaded, onReady]);
+
+  // Animate in or out when shouldAnimate changes
+  useEffect(() => {
+    scaleSpring.current.target = props.shouldAnimate ? 1 : 0;
+    opacitySpring.current.target = props.shouldAnimate ? 1 : 0;
+    if (!props.shouldAnimate) hasIncrementedStep.current = false;
   }, [props.shouldAnimate]);
 
-  // Track full document height so the car can roam the entire page
-  const [documentHeight, setDocumentHeight] = useState(0);
-  useEffect(() => {
-    const update = () => setDocumentHeight(document.documentElement.scrollHeight);
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(document.documentElement);
-    return () => observer.disconnect();
-  }, []);
+  // Track full page height so the car can roam the entire page
+  const documentHeight = usePageHeight();
 
   // Calculate ROOT_POS using useMemo to ensure it's recalculated when dependencies change
   const ROOT_POS = useMemo(
@@ -149,547 +223,438 @@ export const Car = (props: {
       y:
         (parseInt((props.style.top as string).split("%")[0]) / 100) *
         (windowHeight || window.innerHeight),
-      rotation: 0.2,
-      speed: 0,
+      heading: 0.2,
     }),
-    [props.style.left, props.style.top, windowWidth, windowHeight]
+    [props.style.left, props.style.top, windowWidth, windowHeight],
   );
 
-  const [resetTimer, setResetTimer] = useState<NodeJS.Timeout | null>(null);
-  const [leftTrail, setLeftTrail] = useState<TrailLine>({
-    points: [],
-    maxAge: 1500,
-  });
-  const [rightTrail, setRightTrail] = useState<TrailLine>({
-    points: [],
-    maxAge: 1500,
-  });
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  // Initialize position with correct ROOT_POS after component mounts
+  // Park the car at its home position whenever that position changes
   useEffect(() => {
-    setPosition(ROOT_POS);
-    // Set initial rotation to 0.2 when component first loads
-    setPhysics((prev) => ({
-      ...prev,
-      targetRotation: 0.2,
-      currentRotation: 0.2,
-    }));
+    car.current = { ...ROOT_POS, vx: 0, vy: 0, steer: 0, grip: GRIP };
+    reset.current = null;
+    needsDraw.current = true;
   }, [ROOT_POS]);
 
-  // Play audio, loop smoothly while in motion, adjust volume by speed, stop when stopped
-  // useEffect(() => {
-  //   // Create audio only once
-  //   if (!audioRef.current) {
-  //     audioRef.current = new Audio("/fun/car-engine.mp3");
-  //     audioRef.current.loop = false; // We'll handle looping manually for smoothness
-  //     audioRef.current.volume = 0;
-  //   }
-  //   const audio = audioRef.current;
-
-  //   // Duration to trim from start/end for smooth loop (in seconds)
-  //   const TRIM = 0.235;
-
-  //   // Helper to handle smooth looping
-  //   const handleTimeUpdate = () => {
-  //     if (audio.duration && audio.currentTime > audio.duration - TRIM) {
-  //       audio.currentTime = TRIM;
-  //       audio.play().catch(() => {});
-  //     }
-  //   };
-
-  //   if (position.speed > 0) {
-  //     // Set volume based on speed (clamp between 0.2 and 1)
-  //     const minVol = 0.4;
-  //     const maxVol = 1;
-  //     const maxSpeed = 12;
-  //     const vol = Math.min(
-  //       maxVol,
-  //       minVol + (Math.abs(position.speed) / maxSpeed) * (maxVol - minVol)
-  //     );
-  //     audio.volume = vol;
-
-  //     // Attach timeupdate for smooth loop
-  //     audio.removeEventListener("timeupdate", handleTimeUpdate);
-  //     audio.addEventListener("timeupdate", handleTimeUpdate);
-
-  //     // Play if not already playing, start at TRIM for smoothness
-  //     if (audio.paused) {
-  //       audio.currentTime = TRIM;
-  //       audio.play().catch(() => {});
-  //     }
-  //   } else {
-  //     // Pause and reset if stopped
-  //     audio.removeEventListener("timeupdate", handleTimeUpdate);
-  //     if (!audio.paused) {
-  //       audio.pause();
-  //       audio.currentTime = 0;
-  //     }
-  //     audio.volume = 0;
-  //   }
-
-  //   return () => {
-  //     audio.removeEventListener("timeupdate", handleTimeUpdate);
-  //     if (audio) {
-  //       audio.pause();
-  //       audio.currentTime = 0;
-  //       audio.volume = 0;
-  //     }
-  //   };
-  // }, [position.speed]);
-
-  // Handle keyboard input with proper key tracking
+  // Release the audio context when the car goes away
   useEffect(() => {
+    sounds.current = new CarSounds();
+    return () => sounds.current?.dispose();
+  }, []);
+
+  // Handle keyboard input
+  useEffect(() => {
+    const DRIVING_KEYS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
+    const isCarVisible = () => scaleSpring.current.target === 1;
+
+    const isTyping = (e: KeyboardEvent) =>
+      e.target instanceof HTMLElement &&
+      (e.target.isContentEditable ||
+        ["INPUT", "TEXTAREA", "SELECT"].includes(e.target.tagName));
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      if (isTyping(e)) return;
+      if (DRIVING_KEYS.includes(e.key)) {
         e.preventDefault();
-        setPressedKeys((prev) => new Set(prev).add(e.key));
+        pressedKeys.current.add(e.key);
+        // Audio can only start from a user gesture, so wake it on the first key
+        if (isCarVisible()) sounds.current?.start();
+      } else if (e.code === "KeyB" && !e.repeat && isCarVisible()) {
+        sounds.current?.start();
+        sounds.current?.hornOn();
+      } else if (e.code === "Space") {
+        // Space is the handbrake, but only steal it from page scrolling while driving
+        const { vx, vy } = car.current;
+        const isDriving =
+          Math.hypot(vx, vy) > 20 ||
+          DRIVING_KEYS.some((key) => pressedKeys.current.has(key));
+        if (isDriving) {
+          e.preventDefault();
+          pressedKeys.current.add("Space");
+        }
       }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
-      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+      if (DRIVING_KEYS.includes(e.key)) {
         e.preventDefault();
-        setPressedKeys((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(e.key);
-          return newSet;
-        });
+        pressedKeys.current.delete(e.key);
+      } else if (e.code === "Space") {
+        pressedKeys.current.delete("Space");
+      } else if (e.code === "KeyB") {
+        sounds.current?.hornOff();
       }
+    };
+
+    // Don't leave keys stuck down if the window loses focus mid-drive
+    const handleBlur = () => {
+      pressedKeys.current.clear();
+      sounds.current?.hornOff();
     };
 
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
+    window.addEventListener("blur", handleBlur);
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
+      window.removeEventListener("blur", handleBlur);
     };
   }, []);
 
-  // Track if the car has ever been driven to prevent initial reset timer
-  const [hasBeenDriven, setHasBeenDriven] = useState(false);
-
-  // Handle reset timeout - 5 seconds after speed becomes 0, cancel if speed increases
-  useEffect(() => {
-    // Clear any existing timer when speed changes
-    if (resetTimer) {
-      clearTimeout(resetTimer);
-      setResetTimer(null);
-    }
-
-    // Only start timer when speed becomes 0 AND the car has been driven before
-    if (Math.abs(position.speed) < 0.01 && hasBeenDriven) {
-      const timer = setTimeout(() => {
-        // Start smooth transition back to original position
-        setResetTransition({
-          isTransitioning: true,
-          targetX: ROOT_POS.x,
-          targetY: ROOT_POS.y,
-          targetRotation: ROOT_POS.rotation,
-          startX: position.x,
-          startY: position.y,
-          startRotation: position.rotation,
-          progress: 0,
-        });
-        setPhysics((prev) => ({
-          ...prev,
-          targetSpeed: 0,
-          currentSpeed: 0,
-        }));
-        setResetTimer(null);
-      }, 5000);
-
-      setResetTimer(timer);
-    }
-
-    return () => {
-      if (resetTimer) {
-        clearTimeout(resetTimer);
-      }
-    };
-  }, [ROOT_POS, position.speed, hasBeenDriven]);
-
-  // Check if a point is within the car's bounds
-  const isPointInCar = (mouseX: number, mouseY: number) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return false;
-
-    const rect = canvas.getBoundingClientRect();
-    const canvasX = mouseX - rect.left;
-    const canvasY = mouseY - rect.top;
-
-    // Car dimensions
-    const carWidth = WIDTH;
-    const carHeight = WIDTH / ASPECT_RATIO;
-
-    // Calculate car bounds in canvas coordinates
-    const carLeft = position.x - carWidth / 2;
-    const carRight = position.x + carWidth / 2;
-    const carTop = position.y - carHeight / 2;
-    const carBottom = position.y + carHeight / 2;
-
-    // Simple rectangular bounds check (not accounting for rotation for simplicity)
-    return (
-      canvasX >= carLeft &&
-      canvasX <= carRight &&
-      canvasY >= carTop &&
-      canvasY <= carBottom
-    );
-  };
-
-  // Handle mouse move to update cursor
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const isOverCar = isPointInCar(e.clientX, e.clientY);
-    setIsMouseOverCar(isOverCar);
-  };
-
-  // Handle mouse leave to reset cursor
-  const handleMouseLeave = () => {
-    setIsMouseOverCar(false);
+  const startReset = () => {
+    const { x, y, heading } = car.current;
+    reset.current = { from: { x, y, heading }, progress: 0 };
+    idleTime.current = 0;
   };
 
   // Handle click to reset car to original position
   const handleCarClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Prevent default and stop propagation to avoid triggering underlying elements
     e.preventDefault();
     e.stopPropagation();
-
-    // Clear any existing reset timer
-    if (resetTimer) {
-      clearTimeout(resetTimer);
-      setResetTimer(null);
-    }
-
-    // Start smooth transition back to original position
-    setResetTransition({
-      isTransitioning: true,
-      targetX: ROOT_POS.x,
-      targetY: ROOT_POS.y,
-      targetRotation: ROOT_POS.rotation,
-      startX: position.x,
-      startY: position.y,
-      startRotation: position.rotation,
-      progress: 0,
-    });
-    setPhysics((prev) => ({
-      ...prev,
-      targetSpeed: 0,
-      currentSpeed: 0,
-    }));
+    startReset();
   };
 
-  // Combined animation frame loop for physics and UI animations
-  useAnimationFrame((time, delta) => {
-    const deltaSeconds = delta / 1000;
+  const stepPhysics = (
+    dt: number,
+    bounds: { width: number; height: number },
+  ) => {
+    const state = car.current;
+    const keys = pressedKeys.current;
+    const throttle = keys.has("ArrowUp");
+    const brake = keys.has("ArrowDown");
+    const handbrake = keys.has("Space");
+    const steerInput =
+      (keys.has("ArrowRight") ? 1 : 0) - (keys.has("ArrowLeft") ? 1 : 0);
 
-    // Handle smooth reset transition
-    if (resetTransition.isTransitioning) {
-      const transitionSpeed = 2.0; // How fast the transition happens
-      const newProgress = Math.min(
-        1,
-        resetTransition.progress + transitionSpeed * deltaSeconds
-      );
+    // Split velocity into the part along the car and the part sliding sideways
+    const forwardX = Math.sin(state.heading);
+    const forwardY = -Math.cos(state.heading);
+    let forwardSpeed = state.vx * forwardX + state.vy * forwardY;
+    let lateralSpeed = state.vx * -forwardY + state.vy * forwardX;
 
-      if (newProgress >= 1) {
-        // Transition complete
-        setPosition((prev) => ({
-          ...prev,
-          x: resetTransition.targetX,
-          y: resetTransition.targetY,
-          rotation: resetTransition.targetRotation,
-          speed: 0,
-        }));
-        setPhysics((prev) => ({
-          ...prev,
-          targetRotation: resetTransition.targetRotation,
-          currentRotation: resetTransition.targetRotation,
-        }));
-        setResetTransition((prev) => ({ ...prev, isTransitioning: false }));
-      } else {
-        // Interpolate position during transition
-        const easeProgress = 1 - Math.pow(1 - newProgress, 3); // Ease-out cubic
-        const newX =
-          resetTransition.startX +
-          (resetTransition.targetX - resetTransition.startX) * easeProgress;
-        const newY =
-          resetTransition.startY +
-          (resetTransition.targetY - resetTransition.startY) * easeProgress;
-        const TWO_PI = 2 * Math.PI;
-        const rawDiff = resetTransition.targetRotation - resetTransition.startRotation;
-        const shortestDiff = ((rawDiff % TWO_PI) + TWO_PI + Math.PI) % TWO_PI - Math.PI;
-        const newRotation = resetTransition.startRotation + shortestDiff * easeProgress;
-
-        setPosition((prev) => ({
-          ...prev,
-          x: newX,
-          y: newY,
-          rotation: newRotation,
-          speed: 0,
-        }));
-        setPhysics((prev) => ({
-          ...prev,
-          targetRotation: newRotation,
-          currentRotation: newRotation,
-        }));
-        setResetTransition((prev) => ({ ...prev, progress: newProgress }));
-      }
+    // Engine, brakes and reverse
+    if (throttle && forwardSpeed >= -1) {
+      forwardSpeed +=
+        ENGINE_ACCEL *
+        (handbrake ? HANDBRAKE_THROTTLE : 1) *
+        (1 - forwardSpeed / MAX_SPEED) *
+        dt;
+    } else if (throttle) {
+      forwardSpeed = approach(forwardSpeed, 0, BRAKE_DECEL * dt);
+    } else if (brake && forwardSpeed > 1) {
+      forwardSpeed = approach(forwardSpeed, 0, BRAKE_DECEL * dt);
+    } else if (brake) {
+      forwardSpeed -=
+        REVERSE_ACCEL * (1 + forwardSpeed / MAX_REVERSE_SPEED) * dt;
+    } else {
+      forwardSpeed -= forwardSpeed * COAST_DRAG * dt;
+      forwardSpeed = approach(forwardSpeed, 0, ROLLING_RESISTANCE * dt);
     }
 
-    // Physics update for smooth acceleration/deceleration and rotation
-    // Skip physics updates during reset transitions
-    if (!resetTransition.isTransitioning) {
-      setPhysics((prevPhysics) => {
-        // Calculate target speed based on pressed keys
-        let targetSpeed = 0;
-        if (pressedKeys.has("ArrowUp")) {
-          targetSpeed = 12; // Forward speed
-        } else if (pressedKeys.has("ArrowDown")) {
-          targetSpeed = -6; // Reverse speed (slower)
-        }
+    if (handbrake) {
+      forwardSpeed = approach(forwardSpeed, 0, HANDBRAKE_DECEL * dt);
+    }
 
-        // Mark that the car has been driven if any movement keys are pressed
-        if (
-          pressedKeys.has("ArrowUp") ||
-          pressedKeys.has("ArrowDown") ||
-          pressedKeys.has("ArrowLeft") ||
-          pressedKeys.has("ArrowRight")
-        ) {
-          setHasBeenDriven(true);
-        }
+    // Tyres resist sliding sideways; the handbrake lets the rear step out
+    state.grip = handbrake
+      ? approach(state.grip, HANDBRAKE_GRIP, GRIP_LOSS_RATE * dt)
+      : approach(state.grip, GRIP, GRIP_RECOVERY_RATE * dt);
+    const keptLateral = lateralSpeed * Math.exp(-state.grip * dt);
+    // While drifting, some of the slide carries the car forward out of the corner
+    if (forwardSpeed > 0 && state.grip < GRIP) {
+      forwardSpeed = Math.min(
+        MAX_SPEED,
+        forwardSpeed + Math.abs(lateralSpeed - keptLateral) * DRIFT_RECOVERY,
+      );
+    }
+    lateralSpeed = keptLateral;
 
-        // Calculate target rotation based on pressed keys
-        let targetRotation = prevPhysics.targetRotation;
-        if (pressedKeys.has("ArrowLeft")) {
-          targetRotation -= 0.05; // Turn left
-        }
-        if (pressedKeys.has("ArrowRight")) {
-          targetRotation += 0.05; // Turn right
-        }
+    // The wheel eases towards the keys instead of snapping
+    state.steer = approach(state.steer, steerInput, STEER_RESPONSE * dt);
 
-        // Smooth acceleration/deceleration
-        const acceleration = 0.5; // How fast to reach target speed
+    // Steering needs the car to be rolling, flips in reverse, and calms at speed
+    const speedFactor =
+      clamp(forwardSpeed / FULL_STEER_SPEED, -1, 1) *
+      (1 -
+        HIGH_SPEED_STEER_LOSS *
+          Math.min(Math.abs(forwardSpeed) / MAX_SPEED, 1));
+    state.heading +=
+      state.steer *
+      MAX_YAW_RATE *
+      speedFactor *
+      (handbrake ? HANDBRAKE_YAW_BOOST : 1) *
+      dt;
 
-        let newSpeed = prevPhysics.currentSpeed;
-        if (Math.abs(targetSpeed) > 0) {
-          // Accelerating
-          const speedDiff = targetSpeed - prevPhysics.currentSpeed;
-          newSpeed += speedDiff * acceleration * deltaSeconds;
-        } else {
-          // Decelerating (much slower)
-          newSpeed *= Math.pow(0.95, deltaSeconds * 20); // Exponential decay
-          if (Math.abs(newSpeed) < 0.01) {
-            newSpeed = 0;
+    // Recombine velocity along the old heading so momentum lags the turn;
+    // grip pulls it back in line next step, and a lack of grip is a drift
+    state.vx = forwardX * forwardSpeed - forwardY * lateralSpeed;
+    state.vy = forwardY * forwardSpeed + forwardX * lateralSpeed;
+    state.x += state.vx * dt;
+    state.y += state.vy * dt;
+
+    // Bounce off the edges of the page, using the rotated car's real
+    // footprint (it is much longer than it is wide) so no part leaves the page
+    const cos = Math.abs(Math.cos(state.heading));
+    const sin = Math.abs(Math.sin(state.heading));
+    const halfExtentX = (cos * WIDTH + sin * HEIGHT) / 2;
+    const halfExtentY = (sin * WIDTH + cos * HEIGHT) / 2;
+    if (state.x < halfExtentX || state.x > bounds.width - halfExtentX) {
+      state.x = clamp(state.x, halfExtentX, bounds.width - halfExtentX);
+      state.vx *= -WALL_BOUNCE;
+    }
+    if (state.y < halfExtentY || state.y > bounds.height - halfExtentY) {
+      state.y = clamp(state.y, halfExtentY, bounds.height - halfExtentY);
+      state.vy *= -WALL_BOUNCE;
+    }
+
+    // Lock-ups and slides leave marks
+    const isLockingUp = (brake || handbrake) && forwardSpeed > 300 && !throttle;
+    const slip = Math.max(
+      Math.abs(lateralSpeed) - SKID_THRESHOLD,
+      isLockingUp ? 120 : 0,
+    );
+    return slip > 0 ? clamp(slip / 300, 0.2, 0.7) : 0;
+  };
+
+  const addSkidPoints = (intensity: number, time: number) => {
+    const { x, y, heading } = car.current;
+    const cos = Math.cos(heading);
+    const sin = Math.sin(heading);
+    const wheelAt = (offsetX: number): SkidPoint => ({
+      x: x + cos * offsetX - sin * REAR_AXLE_OFFSET,
+      y: y + sin * offsetX + cos * REAR_AXLE_OFFSET,
+      time,
+      intensity,
+    });
+
+    for (const [side, offsetX] of [
+      ["left", -REAR_WHEEL_OFFSET],
+      ["right", REAR_WHEEL_OFFSET],
+    ] as const) {
+      const segments = skids.current[side];
+      // A new mark starts each time the tyres begin sliding again
+      if (!wasSkidding.current || segments.length === 0) segments.push([]);
+      segments[segments.length - 1].push(wheelAt(offsetX));
+    }
+  };
+
+  const draw = (ctx: CanvasRenderingContext2D, now: number) => {
+    const canvas = ctx.canvas;
+    const hasSkidMarks =
+      skids.current.left.length > 0 || skids.current.right.length > 0;
+
+    // Clearing the whole page-sized canvas is expensive, so when there are no
+    // skid marks only the car's previous spot is cleared
+    if (hasSkidMarks || hadSkidMarks.current || !lastCarRect.current) {
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    } else {
+      const { x, y, size } = lastCarRect.current;
+      ctx.clearRect(x - size / 2, y - size / 2, size, size);
+    }
+    hadSkidMarks.current = hasSkidMarks;
+    lastCarRect.current = null;
+
+    // Skid marks, fading with age
+    if (hasSkidMarks) {
+      ctx.save();
+      ctx.strokeStyle = "#2a2a2a";
+      ctx.lineWidth = 4;
+      ctx.lineCap = "round";
+      for (const side of ["left", "right"] as const) {
+        for (const segment of skids.current[side]) {
+          for (let i = 1; i < segment.length; i++) {
+            const point = segment[i];
+            const fade = 1 - (now - point.time) / SKID_LIFETIME;
+            if (fade <= 0) continue;
+            ctx.globalAlpha = fade * point.intensity;
+            ctx.beginPath();
+            ctx.moveTo(segment[i - 1].x, segment[i - 1].y);
+            ctx.lineTo(point.x, point.y);
+            ctx.stroke();
           }
         }
-
-        // Smooth rotation
-        const rotationSpeed = 2.0; // How fast to reach target rotation
-        const rotationDiff = targetRotation - prevPhysics.currentRotation;
-        const newRotation =
-          prevPhysics.currentRotation +
-          rotationDiff * rotationSpeed * deltaSeconds;
-
-        // Update position with new physics values
-        setPosition((prevPos) => ({
-          ...prevPos,
-          speed: newSpeed,
-          rotation: newRotation,
-        }));
-
-        return {
-          targetSpeed,
-          currentSpeed: newSpeed,
-          targetRotation,
-          currentRotation: newRotation,
-        };
-      });
+      }
+      ctx.restore();
     }
 
-    // Spring-mass-damper animation for UI elements
-    const isAnimating =
-      scaleAnimation.isAnimating || opacityAnimation.isAnimating;
-    if (!isAnimating) return;
+    const scale = scaleSpring.current.value;
+    const opacity = clamp(opacitySpring.current.value, 0, 1);
+    if (!imageLoaded || scale < 0.01 || opacity < 0.01) return;
 
-    // Update scale animation
-    setScaleAnimation((prev) => {
-      const springConstant = 300; // Controls spring stiffness
-      const damping = 20;
-      const mass = 1; // Mass of the object
+    const dpr = window.devicePixelRatio || 1;
+    if (!sprites.current || sprites.current.dpr !== dpr) {
+      sprites.current = buildCarSprites(carImage, dpr);
+    }
+    const { car: carSprite, shadow: shadowSprite } = sprites.current;
+    const { x, y, heading } = car.current;
+    const shadowWidth = WIDTH + SHADOW_PAD * 2;
+    const shadowHeight = HEIGHT + SHADOW_PAD * 2;
+    const shadowOffsetX = CANVAS_HIGH_SHADOW.offsetX / dpr;
+    const shadowOffsetY = CANVAS_HIGH_SHADOW.offsetY / dpr;
 
-      // Calculate spring force (F = -kx)
-      const displacement = prev.target - prev.scale;
-      const springForce = springConstant * displacement;
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    // Shadow falls straight down the page whichever way the car faces
+    ctx.translate(x + shadowOffsetX, y + shadowOffsetY);
+    ctx.scale(scale, scale);
+    ctx.rotate(heading);
+    ctx.drawImage(
+      shadowSprite,
+      -shadowWidth / 2,
+      -shadowHeight / 2,
+      shadowWidth,
+      shadowHeight,
+    );
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(dpr, dpr);
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.rotate(heading);
+    ctx.drawImage(carSprite, -WIDTH / 2, -HEIGHT / 2, WIDTH, HEIGHT);
+    ctx.restore();
 
-      // Calculate damping force (F = -cv)
-      const dampingForce = damping * prev.velocity;
+    // A square that covers the rotated car and its shadow, plus a margin for
+    // antialiasing and the spring overshooting
+    const size =
+      Math.hypot(shadowWidth, shadowHeight) * Math.max(scale, 1) +
+      2 * Math.hypot(shadowOffsetX, shadowOffsetY) +
+      4;
+    lastCarRect.current = { x, y, size };
+  };
 
-      // Calculate acceleration (F = ma, so a = F/m)
-      const acceleration = (springForce - dampingForce) / mass;
+  useAnimationFrame((time, delta) => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
 
-      // Update velocity and position using Euler integration
-      const newVelocity = prev.velocity + acceleration * (delta / 1000); // Convert delta to seconds
-      const newScale = prev.scale + newVelocity * (delta / 1000);
+    // Clamp long frames (e.g. after switching tabs) so the car doesn't jump
+    const dt = Math.min(delta / 1000, 0.1);
+    const now = performance.now();
+    const dpr = window.devicePixelRatio || 1;
+    const bounds = { width: canvas.width / dpr, height: canvas.height / dpr };
+    const state = car.current;
+    const keys = pressedKeys.current;
 
-      // Check if animation is complete (close enough to target and low velocity)
-      const isComplete =
-        Math.abs(newScale - prev.target) < 0.001 &&
-        Math.abs(newVelocity) < 0.001;
+    // Entrance / exit springs
+    const scaleMoving = stepSpring(scaleSpring.current, dt);
+    const opacityMoving = stepSpring(opacitySpring.current, dt);
+    if (scaleMoving || opacityMoving) needsDraw.current = true;
+    if (
+      !hasIncrementedStep.current &&
+      scaleSpring.current.value > 0.95 &&
+      opacitySpring.current.value > 0.95
+    ) {
+      hasIncrementedStep.current = true;
+      props.incrementStep();
+    }
+    if (labelRef.current) {
+      labelRef.current.style.opacity = String(
+        clamp(opacitySpring.current.value, 0, 1),
+      );
+      labelRef.current.style.transform = `scale(${Math.max(0, scaleSpring.current.value)})`;
+    }
 
-      return {
-        scale: Math.max(0, newScale), // Ensure scale doesn't go below 0
-        velocity: newVelocity,
-        target: prev.target,
-        isAnimating: !isComplete,
-      };
-    });
-
-    // Update opacity animation
-    setOpacityAnimation((prev) => {
-      const springConstant = 300; // Match scale animation speed
-      const damping = 20;
-      const mass = 1;
-
-      // Calculate spring force (F = -kx)
-      const displacement = prev.target - prev.opacity;
-      const springForce = springConstant * displacement;
-
-      // Calculate damping force (F = -cv)
-      const dampingForce = damping * prev.velocity;
-
-      // Calculate acceleration (F = ma, so a = F/m)
-      const acceleration = (springForce - dampingForce) / mass;
-
-      // Update velocity and position using Euler integration
-      const newVelocity = prev.velocity + acceleration * (delta / 1000);
-      const newOpacity = prev.opacity + newVelocity * (delta / 1000);
-
-      // Check if animation is complete
-      const isComplete =
-        Math.abs(newOpacity - prev.target) < 0.001 &&
-        Math.abs(newVelocity) < 0.001;
-
-      return {
-        opacity: Math.max(0, Math.min(1, newOpacity)), // Clamp between 0 and 1
-        velocity: newVelocity,
-        target: prev.target,
-        isAnimating: !isComplete,
-      };
-    });
-  });
-
-  // Update position based on speed and rotation using requestAnimationFrame
-  useEffect(() => {
-    let animationFrameId: number;
-
-    const updatePosition = () => {
-      setPosition((prev) => {
-        // Remove old points from trails even if not moving
-        const now = Date.now();
-        setLeftTrail((prevTrail) => {
-          const filteredPoints = prevTrail.points.filter(
-            (point) => now - point.age < point.maxAge
-          );
-          return { ...prevTrail, points: filteredPoints };
-        });
-        setRightTrail((prevTrail) => {
-          const filteredPoints = prevTrail.points.filter(
-            (point) => now - point.age < point.maxAge
-          );
-          return { ...prevTrail, points: filteredPoints };
-        });
-
-        if (Math.abs(prev.speed) < 0.1) {
-          return prev; // Don't move if speed is very low
-        }
-
-        const newX = prev.x + Math.sin(prev.rotation) * prev.speed;
-        const newY = prev.y - Math.cos(prev.rotation) * prev.speed;
-
-        // Get canvas dimensions for wrapping
-        const canvas = canvasRef.current;
-        if (!canvas) return prev;
-        const width = canvas.width / (window.devicePixelRatio || 1);
-        const height = canvas.height / (window.devicePixelRatio || 1);
-
-        // Wrap around screen edges
-        const wrappedX = newX < 0 ? width : newX > width ? 0 : newX;
-        const wrappedY = newY < 0 ? height : newY > height ? 0 : newY;
-
-        // Add trail points for back wheels when moving
-        if (Math.abs(prev.speed) > 0.1) {
-          // Back wheels are at y=12 (back of car) and x=-18 and x=14
-          const backWheelY = 50; // Distance from center to back of car
-          const leftBackWheelX = WIDTH * 0.3 - WIDTH / 2; // Left wheel x offset
-          const rightBackWheelX = WIDTH * 0.7 - WIDTH / 2; // Right wheel x offset
-
-          // Calculate wheel positions in world coordinates
-          const leftBackWheelWorldX =
-            wrappedX +
-            Math.cos(prev.rotation) * leftBackWheelX -
-            Math.sin(prev.rotation) * backWheelY;
-          const leftBackWheelWorldY =
-            wrappedY +
-            Math.sin(prev.rotation) * leftBackWheelX +
-            Math.cos(prev.rotation) * backWheelY;
-          const rightBackWheelWorldX =
-            wrappedX +
-            Math.cos(prev.rotation) * rightBackWheelX -
-            Math.sin(prev.rotation) * backWheelY;
-          const rightBackWheelWorldY =
-            wrappedY +
-            Math.sin(prev.rotation) * rightBackWheelX +
-            Math.cos(prev.rotation) * backWheelY;
-
-          const now = Date.now();
-
-          // Update left trail
-          setLeftTrail((prevTrail) => {
-            const newPoints = [
-              ...prevTrail.points,
-              {
-                x: leftBackWheelWorldX,
-                y: leftBackWheelWorldY,
-                age: now,
-                maxAge: prevTrail.maxAge,
-              },
-            ];
-            return { ...prevTrail, points: newPoints };
-          });
-
-          // Update right trail
-          setRightTrail((prevTrail) => {
-            const newPoints = [
-              ...prevTrail.points,
-              {
-                x: rightBackWheelWorldX,
-                y: rightBackWheelWorldY,
-                age: now,
-                maxAge: prevTrail.maxAge,
-              },
-            ];
-            return { ...prevTrail, points: newPoints };
-          });
-        }
-
-        return {
-          ...prev,
-          x: wrappedX,
-          y: wrappedY,
-        };
-      });
-
-      animationFrameId = requestAnimationFrame(updatePosition);
-    };
-
-    animationFrameId = requestAnimationFrame(updatePosition);
-
-    return () => {
-      if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
+    if (keys.size > 0) {
+      hasBeenDriven.current = true;
+      if (!hasShownExtraControls.current) {
+        hasShownExtraControls.current = true;
+        setShowExtraControls(true);
       }
-    };
-  }, [canvasRef.current, props.style, position.speed]);
+      reset.current = null;
+    }
+
+    if (reset.current) {
+      // Glide home
+      const r = reset.current;
+      r.progress = Math.min(1, r.progress + dt / RESET_DURATION);
+      const ease = 1 - Math.pow(1 - r.progress, 3);
+      const TWO_PI = 2 * Math.PI;
+      const rawDiff = ROOT_POS.heading - r.from.heading;
+      const shortestDiff =
+        (((rawDiff % TWO_PI) + TWO_PI + Math.PI) % TWO_PI) - Math.PI;
+      state.x = r.from.x + (ROOT_POS.x - r.from.x) * ease;
+      state.y = r.from.y + (ROOT_POS.y - r.from.y) * ease;
+      state.heading = r.from.heading + shortestDiff * ease;
+      state.vx = state.vy = state.steer = 0;
+      state.grip = GRIP;
+      if (r.progress >= 1) {
+        reset.current = null;
+        hasBeenDriven.current = false;
+      }
+      needsDraw.current = true;
+    } else {
+      const speed = Math.hypot(state.vx, state.vy);
+      const isActive =
+        keys.size > 0 || speed > 0.5 || Math.abs(state.steer) > 0;
+
+      if (isActive) {
+        let skidIntensity = 0;
+        for (let remaining = dt; remaining > 0; remaining -= MAX_STEP) {
+          skidIntensity = Math.max(
+            skidIntensity,
+            stepPhysics(Math.min(MAX_STEP, remaining), bounds),
+          );
+        }
+        if (Math.hypot(state.vx, state.vy) < 0.5 && keys.size === 0) {
+          state.vx = state.vy = 0;
+        }
+        if (skidIntensity > 0) addSkidPoints(skidIntensity, now);
+        wasSkidding.current = skidIntensity > 0;
+        needsDraw.current = true;
+
+        // Keep the car on screen by scrolling the page with it
+        if (keys.size > 0) {
+          const screenY = canvas.getBoundingClientRect().top + state.y;
+          if (screenY > window.innerHeight - FOLLOW_MARGIN) {
+            window.scrollBy(0, screenY - (window.innerHeight - FOLLOW_MARGIN));
+          } else if (screenY < FOLLOW_MARGIN) {
+            window.scrollBy(0, screenY - FOLLOW_MARGIN);
+          }
+        }
+      }
+
+      // Drive home after sitting still for a while
+      if (!isActive && hasBeenDriven.current) {
+        idleTime.current += delta;
+        if (idleTime.current > RESET_DELAY) startReset();
+      } else {
+        idleTime.current = 0;
+      }
+    }
+
+    const speed = Math.hypot(state.vx, state.vy);
+    sounds.current?.update(
+      Math.min(speed / MAX_SPEED, 1),
+      keys.has("ArrowUp"),
+      keys.size > 0 || speed > 5,
+    );
+
+    // Drop faded skid marks
+    for (const side of ["left", "right"] as const) {
+      const segments = skids.current[side]
+        .map((segment) =>
+          segment.filter((point) => now - point.time < SKID_LIFETIME),
+        )
+        .filter((segment) => segment.length > 0);
+      if (segments.length > 0 || skids.current[side].length > 0) {
+        needsDraw.current = true;
+      }
+      skids.current[side] = segments;
+    }
+
+    if (hitboxRef.current) {
+      hitboxRef.current.style.left = `${state.x - WIDTH / 2}px`;
+      hitboxRef.current.style.top = `${state.y - HEIGHT / 2}px`;
+    }
+
+    if (needsDraw.current) {
+      draw(ctx, now);
+      needsDraw.current = false;
+    }
+  });
 
   // Handle canvas sizing and resize
   useEffect(() => {
@@ -704,245 +669,21 @@ export const Car = (props: {
     if (ctx) {
       ctx.scale(dpr, dpr);
     }
+    lastCarRect.current = null;
+    needsDraw.current = true;
   }, [windowWidth, windowHeight, documentHeight]);
-
-  // Draw the car
-  useEffect(() => {
-    if (!canvasRef.current || !imageLoaded) return;
-    const ctx = canvasRef.current.getContext("2d");
-    if (!ctx) return;
-
-    // Clear canvas
-    ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-
-    // Draw trails first (behind the car)
-    const now = Date.now();
-
-    // Draw left trail line
-    if (leftTrail.points.length > 1) {
-      ctx.save();
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 3;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-
-      // Group points by opacity and distance to create discontinuous segments
-      const segments: TrailPoint[][] = [];
-      let currentSegment: TrailPoint[] = [];
-      const maxDistance = 50; // Maximum distance between consecutive points
-
-      leftTrail.points.forEach((point, index) => {
-        const age = now - point.age;
-        const opacity = Math.max(0, 1 - age / point.maxAge);
-
-        if (opacity > 0) {
-          // Check if this point is too far from the previous point
-          if (currentSegment.length > 0) {
-            const prevPoint = currentSegment[currentSegment.length - 1];
-            const distance = Math.sqrt(
-              Math.pow(point.x - prevPoint.x, 2) +
-                Math.pow(point.y - prevPoint.y, 2)
-            );
-
-            if (distance > maxDistance) {
-              // Start a new segment
-              segments.push([...currentSegment]);
-              currentSegment = [];
-            }
-          }
-          currentSegment.push(point);
-        } else if (currentSegment.length > 0) {
-          segments.push([...currentSegment]);
-          currentSegment = [];
-        }
-      });
-
-      if (currentSegment.length > 0) {
-        segments.push(currentSegment);
-      }
-
-      // Draw each segment separately
-      segments.forEach((segment) => {
-        if (segment.length > 1) {
-          ctx.beginPath();
-          segment.forEach((point, index) => {
-            const age = now - point.age;
-            const opacity = Math.max(0, 1 - age / point.maxAge);
-            ctx.globalAlpha = opacity * 0.6;
-
-            if (index === 0) {
-              ctx.moveTo(point.x, point.y);
-            } else {
-              // Smooth interpolation between points
-              const prevPoint = segment[index - 1];
-              const midX = (prevPoint.x + point.x) / 2;
-              const midY = (prevPoint.y + point.y) / 2;
-              ctx.quadraticCurveTo(prevPoint.x, prevPoint.y, midX, midY);
-            }
-          });
-          ctx.stroke();
-        }
-      });
-      ctx.restore();
-    }
-
-    // Draw right trail line
-    if (rightTrail.points.length > 1) {
-      ctx.save();
-      ctx.strokeStyle = "#333";
-      ctx.lineWidth = 3;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-
-      // Group points by opacity and distance to create discontinuous segments
-      const segments: TrailPoint[][] = [];
-      let currentSegment: TrailPoint[] = [];
-      const maxDistance = 50; // Maximum distance between consecutive points
-
-      rightTrail.points.forEach((point, index) => {
-        const age = now - point.age;
-        const opacity = Math.max(0, 1 - age / point.maxAge);
-
-        if (opacity > 0) {
-          // Check if this point is too far from the previous point
-          if (currentSegment.length > 0) {
-            const prevPoint = currentSegment[currentSegment.length - 1];
-            const distance = Math.sqrt(
-              Math.pow(point.x - prevPoint.x, 2) +
-                Math.pow(point.y - prevPoint.y, 2)
-            );
-
-            if (distance > maxDistance) {
-              // Start a new segment
-              segments.push([...currentSegment]);
-              currentSegment = [];
-            }
-          }
-          currentSegment.push(point);
-        } else if (currentSegment.length > 0) {
-          segments.push([...currentSegment]);
-          currentSegment = [];
-        }
-      });
-
-      if (currentSegment.length > 0) {
-        segments.push(currentSegment);
-      }
-
-      // Draw each segment separately
-      segments.forEach((segment) => {
-        if (segment.length > 1) {
-          ctx.beginPath();
-
-          // Start at first point
-          ctx.moveTo(segment[0].x, segment[0].y);
-
-          // Draw smooth curves through all points
-          for (let i = 1; i < segment.length; i++) {
-            const currentPoint = segment[i];
-            const prevPoint = segment[i - 1];
-
-            if (i === segment.length - 1) {
-              // Last point - draw straight line
-              ctx.lineTo(currentPoint.x, currentPoint.y);
-            } else {
-              // Middle points - use quadratic curves for smoothness
-              const nextPoint = segment[i + 1];
-              const cp1x = (prevPoint.x + currentPoint.x) / 2;
-              const cp1y = (prevPoint.y + currentPoint.y) / 2;
-              const cp2x = (currentPoint.x + nextPoint.x) / 2;
-              const cp2y = (currentPoint.y + nextPoint.y) / 2;
-
-              ctx.quadraticCurveTo(cp1x, cp1y, cp2x, cp2y);
-            }
-          }
-
-          // Set opacity based on the segment's average age
-          const avgAge =
-            segment.reduce((sum, point) => sum + (now - point.age), 0) /
-            segment.length;
-          const avgOpacity = Math.max(0, 1 - avgAge / segment[0].maxAge);
-          ctx.globalAlpha = avgOpacity * 0.6;
-
-          ctx.stroke();
-        }
-      });
-      ctx.restore();
-    }
-
-    // Save context for rotation, scaling, and opacity
-    ctx.save();
-    ctx.translate(position.x, position.y);
-    ctx.scale(scaleAnimation.scale, scaleAnimation.scale);
-    ctx.globalAlpha = opacityAnimation.opacity;
-    ctx.rotate(position.rotation);
-
-    // Drop shadow settings
-    const shadowColor = "rgba(0,0,0,0.7)";
-    const shadowBlur = 16;
-    const shadowOffsetX = 0;
-    const shadowOffsetY = 6;
-
-    const drawCarWithShadow = (ctxToUse: CanvasRenderingContext2D) => {
-      ctxToUse.save();
-      // Set drop shadow
-      ctxToUse.shadowColor = shadowColor;
-      ctxToUse.shadowBlur = shadowBlur;
-      ctxToUse.shadowOffsetX = shadowOffsetX;
-      ctxToUse.shadowOffsetY = shadowOffsetY;
-      ctxToUse.drawImage(
-        carImage,
-        -WIDTH / 2,
-        -WIDTH / ASPECT_RATIO / 2,
-        WIDTH,
-        WIDTH / ASPECT_RATIO
-      );
-      ctxToUse.restore();
-    };
-
-    // Only draw if image is loaded and animations are ready
-    if (
-      imageLoaded &&
-      scaleAnimation.scale > 0.01 &&
-      opacityAnimation.opacity > 0.01
-    ) {
-      drawCarWithShadow(ctx);
-    }
-
-    // Restore context
-    ctx.restore();
-  }, [
-    position,
-    leftTrail,
-    rightTrail,
-    scaleAnimation.scale,
-    opacityAnimation.opacity,
-    imageLoaded,
-    carImage,
-    canvasRef.current,
-  ]);
 
   return (
     <>
-      {/* Global mouse tracking overlay */}
-      <div
-        className="absolute w-full h-full top-0 left-0 z-50"
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{
-          cursor: isMouseOverCar ? "pointer" : "default",
-          pointerEvents: "none",
-        }}
-      />
       {/* Clickable area that follows the car */}
       <div
+        ref={hitboxRef}
         className="absolute z-40"
         onClick={handleCarClick}
+        title="Click to send the car home"
         style={{
-          left: position.x - WIDTH / 2,
-          top: position.y - WIDTH / ASPECT_RATIO / 2,
           width: WIDTH,
-          height: WIDTH / ASPECT_RATIO,
+          height: HEIGHT,
           pointerEvents: "auto",
           cursor: "pointer",
         }}
@@ -957,22 +698,38 @@ export const Car = (props: {
           top: ROOT_POS.y,
           left: ROOT_POS.x,
           width: WIDTH * 0.95,
-          height: (WIDTH / ASPECT_RATIO) * 1.05,
-          // border: "3px solid #cdcdcd",
+          height: HEIGHT * 1.05,
           position: "absolute",
-          transform: `translate(-50%, -50%) rotate(${ROOT_POS.rotation}rad)`,
+          transform: `translate(-50%, -50%) rotate(${ROOT_POS.heading}rad)`,
           pointerEvents: "none",
         }}
       >
-        <p
-          className="font-sans text-sm text-gray-400 font-semibold uppercase z-30 absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap inline-flex items-center gap-1"
-          style={{
-            opacity: opacityAnimation.opacity,
-            transform: `scale(${scaleAnimation.scale})`,
-          }}
+        <div
+          ref={labelRef}
+          className="font-sans text-sm text-gray-400 font-semibold uppercase z-30 absolute top-full -mt-1 left-1/2 -translate-x-1/2 whitespace-nowrap flex flex-col items-center"
+          style={{ opacity: 0, transform: "scale(0)" }}
         >
-          USE ARROW KEYS TO DRIVE
-        </p>
+          <span>ARROWS TO DRIVE</span>
+          <AnimatePresence>
+            {showExtraControls &&
+              ["SPACE TO DRIFT", "B TO HONK"].map((hint, i) => (
+                // Fade only: the column grows downward below the car, so
+                // nothing above it moves when these appear
+                <motion.span
+                  key={hint}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{
+                    duration: 0.4,
+                    ease: "easeOut",
+                    delay: 0.15 + i * 0.15,
+                  }}
+                >
+                  {hint}
+                </motion.span>
+              ))}
+          </AnimatePresence>
+        </div>
       </div>
     </>
   );

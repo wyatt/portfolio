@@ -3,7 +3,6 @@
 import { Content } from "@/components/Content";
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { PushButton } from "@/components/PushButton";
 import { RecordSpinner } from "@/components/fun/RecordSpinner";
 import { FunMode } from "@/components/fun/FunMode";
 import { useWindowSize } from "@uidotdev/usehooks";
@@ -30,16 +29,12 @@ export default function Home() {
   return (
     <div className="h-full flex flex-col items-center">
       {width && height && width > 1400 && height > 700 && (
-        <PushButton
+        <button
           onClick={() => setFunMode(!funMode)}
-          colors={{
-            front: funMode ? "bg-gray-600" : "bg-red-500",
-            edge: funMode ? "bg-gray-800" : "bg-red-800",
-          }}
-          className="absolute top-0 left-0 m-8 z-30"
+          className="absolute top-0 left-0 m-3 z-30 text-sm text-gray-400 hover:text-gray-600 hover:underline cursor-pointer"
         >
-          {funMode ? "Activate Boring Mode" : "Activate Fun Mode"}
-        </PushButton>
+          {funMode ? "Hide widgets" : "Show widgets"}
+        </button>
       )}
       <FunMode excludedBounds={bounds} isVisible={funMode} />
       <Content setBounds={setBounds} />

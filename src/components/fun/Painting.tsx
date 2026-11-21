@@ -9,11 +9,21 @@ import React, {
 } from "react";
 import Image from "next/image";
 import clsx from "clsx";
-import PushButton from "../PushButton";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
+import { RiCloseLine, RiEraserLine } from "react-icons/ri";
+import { usePageHeight } from "./usePageHeight";
+import { boxShadow, dropShadow } from "./shadows";
 
+// The brush artwork, drawn on a 100x100 grid; the paint blob takes the colour
+const brushSvg = (color: string, size: number) =>
+  `<svg xmlns='http://www.w3.org/2000/svg' width='${size}' height='${size}' viewBox='0 0 100 100'><image href='data:image/png;base64,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' x='0' y='0' width='100' height='100' /><path fill='${color}' d='m20.3 68.4c0 0-7.9 8.5-5.8 11.6 2 3 12 8 13 9.9 1.8 3.7 10.3 4.3 10.3 4.3 0 0 8-0.3 6.7-8.8-0.6-4.2-3.3-3.6-4.9-4-1.6-0.5-3 1.9-5.8 0.1-3.9-2.5 0.1-8.2-8.9-11.9-1.8-0.7-4.6-1.2-4.6-1.2z'/></svg>`;
+
+// The brush tip sits at (20, 86) on the 100x100 grid. Chrome won't draw a
+// cursor bigger than 32px where it would overlap the browser toolbar (near the
+// top of the window), so a 32px brush follows as a fallback, then a crosshair.
 const cursorURI = (color: string) =>
-  `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><image href='data:image/png;base64,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' x='0' y='0' width='100' height='100' /><path fill='${color}' d='m20.3 68.4c0 0-7.9 8.5-5.8 11.6 2 3 12 8 13 9.9 1.8 3.7 10.3 4.3 10.3 4.3 0 0 8-0.3 6.7-8.8-0.6-4.2-3.3-3.6-4.9-4-1.6-0.5-3 1.9-5.8 0.1-3.9-2.5 0.1-8.2-8.9-11.9-1.8-0.7-4.6-1.2-4.6-1.2z'/></svg>") 30 87, pointer`;
+  `url("data:image/svg+xml;utf8,${brushSvg(color, 100)}") 20 86, ` +
+  `url("data:image/svg+xml;utf8,${brushSvg(color, 32)}") 6 28, crosshair`;
 
 // Brush class implementation
 class Brush {
@@ -30,7 +40,7 @@ class Brush {
     public size: number = 35,
     public inkAmount: number = 7,
     public splashing: boolean = false,
-    public dripping: boolean = true
+    public dripping: boolean = true,
   ) {
     this._resetTip();
   }
@@ -54,7 +64,7 @@ class Brush {
         const r = (Math.random() * 16) | 0;
         const v = c === "x" ? r : (r & 0x3) | 0x8;
         return v.toString(16);
-      }
+      },
     );
   }
 
@@ -144,8 +154,8 @@ class Brush {
               0.5 *
               ((0.25 - 0.1) * Math.random() + 0.1),
             this.color,
-            this._strokeId
-          )
+            this._strokeId,
+          ),
         );
       }
 
@@ -192,8 +202,8 @@ class Brush {
           this.x + x1 * cv - y1 * sv,
           this.y + x1 * sv + y1 * cv,
           this.inkAmount,
-          this.color
-        )
+          this.color,
+        ),
       );
     }
   }
@@ -207,7 +217,7 @@ class Hair {
     public x: number = 0,
     public y: number = 0,
     public inkAmount: number = 7,
-    public color: string = "#000"
+    public color: string = "#000",
   ) {
     this._latestPos = { x: this.x, y: this.y };
   }
@@ -216,7 +226,7 @@ class Hair {
     ctx: CanvasRenderingContext2D,
     offsetX: number,
     offsetY: number,
-    offsetLength: number
+    offsetLength: number,
   ): void {
     this._latestPos.x = this.x;
     this._latestPos.y = this.y;
@@ -250,7 +260,7 @@ class Drop {
     public y: number = 0,
     public size: number = 7,
     public color: string = "#000",
-    public strokeId: string | null = null
+    public strokeId: string | null = null,
   ) {
     this.life = this.size * 1.5;
     this._latestPos = { x: this.x, y: this.y };
@@ -297,13 +307,61 @@ const random = (max: number, min: number = 0): number => {
   return Math.random() * (max - min) + min;
 };
 
+// Bare wood on the palette is a muted orange-brown (hue ~18-42°)
+const isWoodColor = (r: number, g: number, b: number): boolean => {
+  const max = Math.max(r, g, b);
+  const delta = max - Math.min(r, g, b);
+  if (max === 0 || delta === 0) return false;
+
+  let hue =
+    max === r
+      ? ((g - b) / delta) % 6
+      : max === g
+        ? (b - r) / delta + 2
+        : (r - g) / delta + 4;
+  hue = (hue * 60 + 360) % 360;
+  const saturation = delta / max;
+  const value = max / 255;
+
+  return (
+    hue >= 18 &&
+    hue <= 42 &&
+    saturation >= 0.2 &&
+    saturation <= 0.68 &&
+    value >= 0.35 &&
+    value <= 0.88
+  );
+};
+
+const PALETTE_SHADOW = dropShadow("low");
+
+// Shown just outside the palette's right edge, following its curve; they slide
+// out from a hidden spot behind the palette when painting starts
+const PALETTE_BUTTONS = [
+  {
+    label: "Clear",
+    Icon: RiEraserLine,
+    shown: { left: "103.9%", top: "25.6%" },
+    hidden: { left: "80.8%", top: "37.6%" },
+    className: "bg-gray-100 text-gray-600",
+  },
+  {
+    label: "Exit",
+    Icon: RiCloseLine,
+    shown: { left: "110.9%", top: "52.5%" },
+    hidden: { left: "85.9%", top: "52.5%" },
+    className: "bg-red-100 text-red-500",
+  },
+];
+
 export const Painting = (props: {
   style: React.CSSProperties;
   shouldAnimate: boolean;
   incrementStep: () => void;
+  onReady?: () => void;
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [documentHeight, setDocumentHeight] = useState(0);
+  const documentHeight = usePageHeight();
   const [isPainting, setIsPainting] = useState(false);
   const [brush, setBrush] = useState<Brush | null>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -319,15 +377,6 @@ export const Painting = (props: {
     pixelHeight: number;
   } | null>(null);
 
-  // Track full document height so painting spans the entire page
-  useEffect(() => {
-    const update = () => setDocumentHeight(document.documentElement.scrollHeight);
-    update();
-    const observer = new ResizeObserver(update);
-    observer.observe(document.documentElement);
-    return () => observer.disconnect();
-  }, []);
-
   // Initialize brush and canvas
   useEffect(() => {
     if (!canvasRef.current || !documentHeight) return;
@@ -336,10 +385,21 @@ export const Painting = (props: {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas size to full document dimensions
+    // Set canvas size to the full page. Resizing a canvas wipes it, so copy
+    // any paint across; the page grows when rows expand or images load.
     const resizeCanvas = () => {
-      canvas.width = document.documentElement.scrollWidth;
-      canvas.height = document.documentElement.scrollHeight;
+      const width = document.documentElement.scrollWidth;
+      if (canvas.width === width && canvas.height === documentHeight) return;
+      let snapshot: HTMLCanvasElement | null = null;
+      if (canvas.width > 0 && canvas.height > 0) {
+        snapshot = document.createElement("canvas");
+        snapshot.width = canvas.width;
+        snapshot.height = canvas.height;
+        snapshot.getContext("2d")?.drawImage(canvas, 0, 0);
+      }
+      canvas.width = width;
+      canvas.height = documentHeight;
+      if (snapshot) ctx.drawImage(snapshot, 0, 0);
     };
 
     resizeCanvas();
@@ -423,7 +483,7 @@ export const Painting = (props: {
       brush.startStroke();
       setIsPainting(true);
     },
-    [brush, isActivated, color]
+    [brush, isActivated, color],
   );
 
   const handlePointerMove = useCallback(
@@ -447,7 +507,7 @@ export const Painting = (props: {
 
       setMousePos({ x, y });
     },
-    [isPainting, isActivated]
+    [isPainting, isActivated],
   );
 
   const handlePointerEnd = useCallback(() => {
@@ -467,21 +527,20 @@ export const Painting = (props: {
     brush.dripping = true;
   }, [brush]);
 
-  const setColorAtPosition = useCallback(
-    (
-      e: React.MouseEvent<HTMLDivElement>,
-      stateFn: React.Dispatch<React.SetStateAction<string>>
-    ) => {
-      if (!paletteRef) return;
+  // Returns the paint colour under the cursor, or null over bare wood
+  const getColorAtPosition = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>): string | null => {
+      if (!paletteRef) return null;
 
       const ctx = paletteRef.canvas.getContext("2d");
-      if (!ctx) return;
+      if (!ctx) return null;
 
       const boundingRect = paletteRef.canvas.getBoundingClientRect();
 
+      // Use the on-screen rect so the hover scale is accounted for
       const rect = {
-        width: paletteRef.cssWidth,
-        height: paletteRef.cssHeight,
+        width: boundingRect.width,
+        height: boundingRect.height,
         left: boundingRect.left,
         top: boundingRect.top,
       };
@@ -497,16 +556,25 @@ export const Painting = (props: {
       const imageX = x * scaleX;
       const imageY = y * scaleY;
 
-      const color = ctx.getImageData(
-        Math.round(imageX),
-        Math.round(imageY),
-        1,
-        1
+      // Sample a 5x5 area so stray wood-coloured pixels inside paint don't flicker
+      const pixels = ctx.getImageData(
+        Math.round(imageX) - 2,
+        Math.round(imageY) - 2,
+        5,
+        5,
       ).data;
 
-      stateFn(`rgb(${color[0]},${color[1]},${color[2]})`);
+      let woodCount = 0;
+      for (let i = 0; i < pixels.length; i += 4) {
+        if (isWoodColor(pixels[i], pixels[i + 1], pixels[i + 2])) woodCount++;
+      }
+      if (woodCount > 12) return null;
+
+      // Centre pixel of the 5x5 area
+      const center = 12 * 4;
+      return `rgb(${pixels[center]},${pixels[center + 1]},${pixels[center + 2]})`;
     },
-    [paletteRef]
+    [paletteRef],
   );
 
   // Clear canvas function
@@ -528,6 +596,12 @@ export const Painting = (props: {
     }, 500);
   }, [brush]);
 
+  // Ready once the palette image has been drawn into its canvas
+  const { onReady } = props;
+  useEffect(() => {
+    if (paletteRef) onReady?.();
+  }, [paletteRef, onReady]);
+
   const isReady = useMemo(() => {
     return paletteRef && canvasRef.current && props.shouldAnimate;
   }, [paletteRef, canvasRef.current, props.shouldAnimate]);
@@ -539,9 +613,6 @@ export const Painting = (props: {
         style={{
           ...props.style,
           display: "inline-block",
-          filter: isActivated
-            ? "drop-shadow(0 0 7px rgba(0, 0, 0, 0.5))"
-            : "none",
         }}
         initial={{
           scale: 0,
@@ -550,7 +621,7 @@ export const Painting = (props: {
           y: "-50%",
         }}
         animate={{
-          scale: isReady ? 1 : 0,
+          scale: isReady ? (isActivated ? 1.1 : 1) : 0,
           opacity: isReady ? 1 : 0,
           x: "-50%",
           y: "-50%",
@@ -590,7 +661,7 @@ export const Painting = (props: {
               node.style.width = `${Math.round(targetHeightCSS * aspect)}px`;
               node.style.maxHeight = "9rem";
               node.style.display = "block";
-              node.style.filter = "drop-shadow(0 0 7px rgba(0, 0, 0, 0.5))";
+              node.style.filter = PALETTE_SHADOW;
 
               // Draw the image at native resolution, scaled for devicePixelRatio
               ctx.clearRect(0, 0, node.width, node.height);
@@ -611,29 +682,82 @@ export const Painting = (props: {
             width: "auto",
             maxHeight: "9rem",
             display: "block",
-            filter: "drop-shadow(0 0 7px rgba(0, 0, 0, 0.5))",
+            filter: PALETTE_SHADOW,
             pointerEvents: "none",
           }}
+          className="relative z-10"
         />
         <div
-          className="absolute top-0 left-0 w-full h-full pointer-events-auto"
+          className="absolute top-0 left-0 w-full h-full z-20 pointer-events-auto"
           style={{
             clipPath:
               "polygon(5.00% 45.20%, 4.69% 53.20%, 6.25% 60.80%, 11.56% 71.20%, 17.81% 80.00%, 27.19% 87.60%, 36.88% 92.00%, 46.56% 94.80%, 65.63% 94.80%, 77.81% 89.60%, 82.19% 86.80%, 84.69% 84.80%, 89.06% 78.40%, 93.75% 66.80%, 95.00% 61.20%, 95.00% 52.00%, 94.06% 46.40%, 90.31% 34.80%, 86.88% 29.20%, 79.38% 21.20%, 67.81% 13.20%, 59.06% 8.40%, 48.13% 5.20%, 43.44% 4.40%, 34.06% 5.20%, 27.19% 9.20%, 25.62% 13.20%, 25.62% 18.40%, 27.50% 26.40%, 30.00% 31.60%, 29.69% 34.80%, 27.19% 36.80%, 12.19% 36.00%, 8.44% 38.40%, 6.25% 41.60%, 5.00% 45.20%)",
             cursor: cursorURI(previewColor),
           }}
           onMouseMove={(e: React.MouseEvent<HTMLDivElement>) => {
-            setColorAtPosition(e, setPreviewColor);
+            setPreviewColor(getColorAtPosition(e) ?? "transparent");
           }}
           onClick={(e: React.MouseEvent<HTMLDivElement>) => {
+            const pickedColor = getColorAtPosition(e);
+            if (!pickedColor) return;
             setIsActivated(true);
-            setColorAtPosition(e, setColor);
+            setColor(pickedColor);
           }}
         />
 
         <p className="font-sans text-sm text-gray-400 font-semibold uppercase z-30 absolute -bottom-4 left-12 whitespace-nowrap inline-flex items-center gap-1">
           CLICK TO PAINT
         </p>
+
+        <AnimatePresence>
+          {isActivated &&
+            PALETTE_BUTTONS.map((button, i) => (
+              <motion.button
+                key={button.label}
+                aria-label={button.label}
+                title={button.label}
+                onClick={
+                  button.label === "Clear"
+                    ? clearCanvas
+                    : () => {
+                        clearCanvas();
+                        setIsActivated(false);
+                      }
+                }
+                className="absolute z-0 w-8 h-8 cursor-pointer pointer-events-auto group"
+                initial={{ ...button.hidden, scale: 0.6, x: "-50%", y: "-50%" }}
+                animate={{
+                  ...button.shown,
+                  scale: 1,
+                  transition: {
+                    type: "spring",
+                    stiffness: 400,
+                    damping: 22,
+                    delay: 0.1 + i * 0.06,
+                  },
+                }}
+                exit={{
+                  ...button.hidden,
+                  scale: 0.6,
+                  transition: {
+                    duration: 0.2,
+                    ease: "easeIn",
+                    delay: i * 0.04,
+                  },
+                }}
+              >
+                <span
+                  className={clsx(
+                    "w-full h-full rounded-full flex items-center justify-center text-lg transition-transform group-hover:scale-110 group-active:scale-95",
+                    button.className,
+                  )}
+                  style={{ boxShadow: boxShadow("low") }}
+                >
+                  <button.Icon />
+                </span>
+              </motion.button>
+            ))}
+        </AnimatePresence>
       </motion.div>
 
       <canvas
@@ -653,36 +777,6 @@ export const Painting = (props: {
           cursor: cursorURI(color),
         }}
       />
-      {isActivated && (
-        <div className="absolute top-0 right-0 flex justify-end m-8">
-          <div className="relative flex gap-2 z-20">
-            <PushButton
-              onClick={clearCanvas}
-              colors={{
-                front: "bg-gray-600",
-                edge: "bg-gray-800",
-              }}
-              className="relative"
-            >
-              Clear
-            </PushButton>
-
-            <PushButton
-              onClick={() => {
-                clearCanvas();
-                setIsActivated(false);
-              }}
-              colors={{
-                front: "bg-red-500",
-                edge: "bg-red-800",
-              }}
-              className="relative"
-            >
-              Exit
-            </PushButton>
-          </div>
-        </div>
-      )}
     </>
   );
 };
