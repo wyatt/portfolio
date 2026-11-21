@@ -62,6 +62,35 @@ const PROJECTS = [
   },
 ];
 
+// Columns in The Cornell Daily Sun, newest first
+const WRITING = [
+  {
+    url: "https://www.cornellsun.com/article/2026/11/sell-the-data-center-that-saves-lives",
+    title: "The Data Center That Saves Lives",
+    date: "Nov 2026",
+  },
+  {
+    url: "https://www.cornellsun.com/article/2026/04/6s7jkggdzhgq",
+    title: "In Defense of Alcohol",
+    date: "Apr 2026",
+  },
+  {
+    url: "https://www.cornellsun.com/article/2026/02/sell-fix-the-elevator",
+    title: "Fix the Elevator",
+    date: "Feb 2026",
+  },
+  {
+    url: "https://www.cornellsun.com/article/2025/11/sell-i-want-to-ride-my-bicycle-i-want-to-ride-it-where-i-like",
+    title: "I Want To Ride My Bicycle, I Want To Ride It Where I Like",
+    date: "Nov 2025",
+  },
+  {
+    url: "https://www.cornellsun.com/article/2025/10/sell-why-does-everything-look-like-a-mid-market-hotel-now",
+    title: "Why Does Everything Look Like a Mid-Market Hotel Now?",
+    date: "Oct 2025",
+  },
+];
+
 export const Content = (props: {
   setBounds: (bounds: {
     top: number;
@@ -302,6 +331,22 @@ export const Content = (props: {
             {showAllProjects ? "Show less" : "Show more"}
           </button>
         )}
+      </Section>
+
+      <Section title="WRITING">
+        <ul className="list-none space-y-1 text-lg">
+          {WRITING.map((piece) => (
+            <li
+              key={piece.url}
+              className="flex flex-col md:flex-row md:items-baseline justify-between gap-x-4"
+            >
+              <a href={piece.url} className="underline">
+                {piece.title}
+              </a>
+              <span className="italic whitespace-nowrap">{piece.date}</span>
+            </li>
+          ))}
+        </ul>
       </Section>
     </div>
   );
